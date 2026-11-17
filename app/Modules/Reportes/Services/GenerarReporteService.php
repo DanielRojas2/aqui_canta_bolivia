@@ -167,7 +167,7 @@ class GenerarReporteService
                 $detallesMap = [];
                 if ($jp->calificacion) {
                     foreach ($jp->calificacion->detalles as $det) {
-                        $detallesMap[$det->id_categoria_parametro] = (float) $det->valor;
+                        $detallesMap[$det->id_parametro] = (float) $det->valor;
                     }
                 }
 
@@ -393,7 +393,7 @@ class GenerarReporteService
                         ];
 
                         foreach ($sabana['parametros'] as $p) {
-                            $val = $jur['parametros_valores'][$p->id] ?? null;
+                            $val = $jur['parametros_valores'][$p->id_parametro] ?? null;
                             $row[] = $val !== null ? number_format($val, 2) : '-';
                         }
 

@@ -3,6 +3,7 @@
 namespace Tests\Feature\Reportes;
 
 use App\Modules\Calificaciones\Models\Calificacion;
+use App\Modules\Calificaciones\Models\DetalleCalificacion;
 use App\Modules\Categorias\Models\Categoria;
 use App\Modules\Fases\Models\Fase;
 use App\Modules\Jurados\Models\JuradoPresentacion;
@@ -130,6 +131,57 @@ class AdminReportesTest extends TestCase
         $response->assertSee($jurado->nombreCompleto());
         $response->assertSee('Notaria de Gobierno');
         $response->assertSee($categoria->categoria);
+    }
+
+    public function test_sabana_muestra_valores_reales_por_cada_parametro(): void
+    {
+        $admin = Usuario::factory()->create(['rol' => RolEnum::ADMIN]);
+        $presentacion = $this->presentacionPreseleccion();
+        $categoria = $presentacion->inscripcion->categoria;
+        $fase = $presentacion->inscripcion->fase;
+
+        $jurado = Usuario::factory()->create(['rol' => RolEnum::JURADO]);
+        $jp = JuradoPresentacion::create([
+            'id_presentacion' => $presentacion->id,
+            'id_usuario' => $jurado->id,
+        ]);
+
+        $parametros = $categoria->categoriaParametros()->orderBy('orden')->get();
+        $valores = [25.50, 32.25, 11.75, 13.50];
+        $total = 0;
+
+        $calificacion = Calificacion::create([
+            'id_jurado_presentacion' => $jp->id,
+            'nota_total' => 0,
+            'estado' => CalificacionEstadoEnum::EMITIDO,
+            'fecha_inicio' => now(),
+            'fecha_finalizacion' => now(),
+        ]);
+
+        foreach ($parametros as $index => $cp) {
+            $valor = min($cp->valor_maximo, $valores[$index] ?? 5.00);
+            $total += $valor;
+
+            DetalleCalificacion::create([
+                'id_calificacion' => $calificacion->id,
+                'id_parametro' => $cp->id_parametro,
+                'valor' => $valor,
+            ]);
+        }
+
+        $calificacion->update(['nota_total' => $total]);
+
+        $response = $this->actingAs($admin)->get(route('admin.reportes.sabana', [
+            'fase_id' => $fase->id,
+            'categoria_id' => $categoria->id,
+        ]));
+
+        $response->assertOk();
+        foreach ($parametros as $index => $cp) {
+            $valor = min($cp->valor_maximo, $valores[$index] ?? 5.00);
+            $response->assertSee(number_format($valor, 2));
+        }
+        $response->assertSee(number_format($total, 2));
     }
 
     public function test_admin_puede_exportar_csv_de_resultados_y_sabana(): void

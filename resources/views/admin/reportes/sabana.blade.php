@@ -257,7 +257,7 @@
                                     <!-- Valores por Parámetro -->
                                     @foreach ($sabana['parametros'] as $param)
                                         @php
-                                            $val = $part['parametros_valores'][$param->id] ?? null;
+                                            $val = $part['parametros_valores'][$param->id_parametro] ?? null;
                                         @endphp
                                         <td class="py-2 print:py-1.5 px-2 border-r border-slate-300 text-center font-mono tabular-nums text-slate-900 text-[11px]">
                                             {{ $val !== null ? number_format($val, 2) : '—' }}
