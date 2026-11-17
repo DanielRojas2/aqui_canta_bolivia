@@ -17,7 +17,7 @@
         $idInicialSeleccionado = $presentacionEnVivo?->id ?? ($presentacionesCategoria->first()?->id ?? 0);
     @endphp
 
-    <div class="space-y-4 max-w-7xl mx-auto"
+    <div class="space-y-4 w-full"
          id="panelJuradoRaiz"
          x-data="{
              selectedId: {{ $idInicialSeleccionado }},
@@ -29,147 +29,98 @@
          data-es-delegado="{{ ($esDelegadoMesa ?? false) ? '1' : '0' }}">
 
         <!-- ============================================================== -->
-        <!-- 1. SLIDER / TRACK DE CATEGORÍAS (ESTILO SLANTED / GALA PRO)    -->
+        <!-- 1. SELECTOR DE CATEGORÍAS Y ACCIÓN DE MESA (ESTILO GALA)       -->
         <!-- ============================================================== -->
-        <div class="flex items-center gap-1.5 sm:gap-2">
-            
-            <!-- Botón Flecha Izquierda Slanted -->
-            <button type="button"
-                    onclick="scrollCategorias('left')"
-                    title="Categorías anteriores"
-                    class="shrink-0 -skew-x-12 transform px-3.5 sm:px-4 py-2.5 sm:py-3 bg-[#13040a] hover:bg-[#280715] text-[#d4af37] hover:text-amber-200 transition-all shadow-lg rounded-sm">
-                <div class="skew-x-12 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" />
-                    </svg>
+        <section class="bg-[#120409]/95 border border-amber-500/20 rounded-2xl p-3 sm:p-4 shadow-xl space-y-3">
+            <!-- Cabecera: Categoría activa actual + Acción de cierre -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 pb-2.5 border-b border-white/10">
+                <div class="flex flex-wrap items-center gap-2.5 min-w-0">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-amber-400/80">
+                        Categoría:
+                    </span>
+                    @if ($categoriaActiva)
+                        <h2 class="font-cinzel font-extrabold text-sm sm:text-base text-amber-200 tracking-wide truncate">
+                            {{ $categoriaActiva->categoria }}
+                        </h2>
+                        @if ($categoriaActiva->estaFinalizada())
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-950/90 text-emerald-300 border border-emerald-500/40">
+                                Cerrada
+                            </span>
+                        @endif
+                    @else
+                        <span class="text-sm text-slate-400">Sin categoría seleccionada</span>
+                    @endif
                 </div>
-            </button>
 
-            <!-- Pista Scrollable de Categorías Slanted -->
+                @if (($esDelegadoMesa ?? false) && $categoriaActiva)
+                    <div class="shrink-0">
+                        @if (! $categoriaActiva->estaFinalizada())
+                            <form method="POST" action="{{ route('mesa.categorias.cerrar', $categoriaActiva) }}" onsubmit="return confirm('¿Está seguro de cerrar las calificaciones de la categoría {{ $categoriaActiva->categoria }}? Ya no se permitirán más registros ni correcciones.')">
+                                @csrf
+                                <button type="submit"
+                                        class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#5c0618] to-[#7f0b24] hover:from-[#720a20] hover:to-[#9b0f2d] border border-rose-400/50 text-white font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-rose-900/40 transition-all cursor-pointer">
+                                    <span>Cerrar Calificación</span>
+                                </button>
+                            </form>
+                        @else
+                            <span class="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[#0c2317] border border-emerald-500/50 text-emerald-300 font-bold text-xs uppercase tracking-wider">
+                                <span>✓</span>
+                                <span>Calificación Cerrada</span>
+                            </span>
+                        @endif
+                    </div>
+                @endif
+            </div>
+
+            <!-- Lista de categorías (chips legibles en todo el ancho) -->
             <div id="contenedorCategoriasSlider"
-                 class="flex-1 flex items-center gap-1.5 sm:gap-2.5 overflow-x-auto py-1 scroll-smooth scrollbar-none"
-                 style="scrollbar-width: none; -ms-overflow-style: none;">
+                 class="flex flex-wrap items-center gap-2">
                 @foreach ($categorias as $cat)
                     @php
                         $esActiva = ($categoriaActiva?->id === $cat->id);
                         $finalizada = $cat->estaFinalizada();
-                        $revelada = $cat->estaRevelada();
-                        $nombreTruncado = \Illuminate\Support\Str::limit($cat->categoria, 27, '...');
+                        $clasesChip = $esActiva
+                            ? 'bg-gradient-to-r from-[#4b0818] to-[#6e0c23] border-amber-400 text-amber-100 shadow-[0_0_14px_rgba(251,191,36,0.28)] ring-1 ring-amber-400/40'
+                            : 'bg-[#1a070e] hover:bg-[#2a0b17] border-white/10 hover:border-amber-500/40 text-slate-300 hover:text-white';
                     @endphp
 
-                    <div class="shrink-0">
+                    <div class="shrink-0" @if ($esActiva) data-categoria-activa="1" @endif>
                         @if ($esDelegadoMesa ?? false)
                             <form method="POST" action="{{ route('mesa.categorias.seleccionar', $cat) }}" class="inline-block">
                                 @csrf
                                 <button type="submit"
                                         title="{{ $cat->categoria }}"
-                                        class="-skew-x-12 transform px-4 sm:px-5 py-2.5 transition-all duration-200 group rounded-sm
-                                            {{ $esActiva 
-                                                ? 'bg-gradient-to-r from-[#2a0610] via-[#3a0817] to-[#2a0610] border-t-2 border-b-2 border-amber-400 text-white shadow-[0_0_18px_rgba(251,191,36,0.4)]' 
-                                                : 'bg-[#120409] hover:bg-[#200612] text-slate-300 hover:text-white' }}">
-                                    
-                                    <div class="skew-x-12 flex items-center gap-2 whitespace-nowrap">
-                                        @if ($esActiva)
-                                            <span class="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_#f59e0b] animate-pulse"></span>
-                                        @endif
-
-                                        <span class="font-extrabold text-xs sm:text-sm uppercase tracking-wider font-cinzel {{ $esActiva ? 'text-amber-200' : 'text-slate-300 group-hover:text-white' }}">
-                                            {{ $nombreTruncado }}
+                                        class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-semibold tracking-wide transition-all duration-150 whitespace-nowrap cursor-pointer {{ $clasesChip }}">
+                                    @if ($esActiva)
+                                        <span class="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_6px_#fbbf24]"></span>
+                                    @endif
+                                    <span>{{ $cat->categoria }}</span>
+                                    @if ($finalizada)
+                                        <span class="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase bg-emerald-950/90 text-emerald-300 border border-emerald-500/40">
+                                            Cerrada
                                         </span>
-
-                                        @if ($finalizada)
-                                            <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-950/90 text-emerald-300 border border-emerald-500/50 shadow-sm font-mono">
-                                                Cerrada
-                                            </span>
-                                        @elseif ($esActiva)
-                                            <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm font-mono">
-                                                Activa
-                                            </span>
-                                        @endif
-                                    </div>
+                                    @endif
                                 </button>
                             </form>
                         @else
                             <a href="{{ route('jurado.inicio', ['cat' => $cat->id]) }}"
                                title="{{ $cat->categoria }}"
-                               class="inline-block -skew-x-12 transform px-4 sm:px-5 py-2.5 transition-all duration-200 group rounded-sm
-                                    {{ $esActiva 
-                                        ? 'bg-gradient-to-r from-[#2a0610] via-[#3a0817] to-[#2a0610] border-t-2 border-b-2 border-amber-400 text-white shadow-[0_0_18px_rgba(251,191,36,0.4)]' 
-                                        : 'bg-[#120409] hover:bg-[#200612] text-slate-300 hover:text-white' }}">
-                                
-                                <div class="skew-x-12 flex items-center gap-2 whitespace-nowrap">
-                                    @if ($esActiva)
-                                        <span class="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_#f59e0b] animate-pulse"></span>
-                                    @endif
-
-                                    <span class="font-extrabold text-xs sm:text-sm uppercase tracking-wider font-cinzel {{ $esActiva ? 'text-amber-200' : 'text-slate-300 group-hover:text-white' }}">
-                                        {{ $nombreTruncado }}
+                               class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-semibold tracking-wide transition-all duration-150 whitespace-nowrap {{ $clasesChip }}">
+                                @if ($esActiva)
+                                    <span class="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_6px_#fbbf24]"></span>
+                                @endif
+                                <span>{{ $cat->categoria }}</span>
+                                @if ($finalizada)
+                                    <span class="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase bg-emerald-950/90 text-emerald-300 border border-emerald-500/40">
+                                        Cerrada
                                     </span>
-
-                                    @if ($finalizada)
-                                        <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-950/90 text-emerald-300 border border-emerald-500/50 shadow-sm font-mono">
-                                            Cerrada
-                                        </span>
-                                    @elseif ($esActiva)
-                                        <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm font-mono">
-                                            Activa
-                                        </span>
-                                    @endif
-                                </div>
+                                @endif
                             </a>
                         @endif
                     </div>
                 @endforeach
             </div>
-
-            <!-- Botón Flecha Derecha Slanted -->
-            <button type="button"
-                    onclick="scrollCategorias('right')"
-                    title="Categorías siguientes"
-                    class="shrink-0 -skew-x-12 transform px-3.5 sm:px-4 py-2.5 sm:py-3 bg-[#13040a] hover:bg-[#280715] text-[#d4af37] hover:text-amber-200 transition-all shadow-lg rounded-sm">
-                <div class="skew-x-12 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7" />
-                    </svg>
-                </div>
-            </button>
-
-        </div>
-
-        <!-- ============================================================== -->
-        <!-- 2. BOTONES DE ACCIÓN DISTINGUIDOS (SOLO PARA JURADO DELEGADO)  -->
-        <!-- ============================================================== -->
-        @if ($esDelegadoMesa ?? false)
-            <div class="flex flex-wrap items-center gap-3 pt-1">
-                
-                <!-- Botón 1: Cerrar Calificación -->
-                @if ($categoriaActiva)
-                    @if (! $categoriaActiva->estaFinalizada())
-                        <form method="POST" action="{{ route('mesa.categorias.cerrar', $categoriaActiva) }}" onsubmit="return confirm('¿Está seguro de cerrar las calificaciones de la categoría {{ $categoriaActiva->categoria }}? Ya no se permitirán más registros ni correcciones.')" class="flex-1 sm:flex-initial">
-                            @csrf
-                            <button type="submit"
-                                    class="-skew-x-12 transform px-5 py-2.5 bg-gradient-to-r from-[#4a0817] via-[#630b20] to-[#4a0817] hover:from-[#630b20] hover:via-[#7e0d29] hover:to-[#630b20] border border-rose-500/60 hover:border-rose-400 text-rose-100 hover:text-white shadow-[0_0_15px_rgba(225,29,72,0.25)] hover:shadow-[0_0_22px_rgba(225,29,72,0.45)] transition-all rounded-sm group w-full">
-                                <div class="skew-x-12 flex items-center justify-center gap-2 whitespace-nowrap">
-                                    <span class="font-black text-xs uppercase tracking-wider text-white">
-                                        Cerrar Calificación
-                                    </span>
-                                </div>
-                            </button>
-                        </form>
-                    @else
-                        <div class="-skew-x-12 transform px-5 py-2.5 bg-[#0c2317] border border-emerald-500/60 text-emerald-300 shadow-inner rounded-sm flex-1 sm:flex-initial">
-                            <div class="skew-x-12 flex items-center justify-center gap-2 whitespace-nowrap">
-                                <span class="text-xs">✓</span>
-                                <span class="font-black text-xs uppercase tracking-wider">
-                                    Calificación Cerrada
-                                </span>
-                            </div>
-                        </div>
-                    @endif
-                @endif
-
-            </div>
-        @endif
+        </section>
 
         @if ($presentacionesCategoria->isEmpty())
             <div class="bg-[#0e0307]/80 rounded-2xl border border-[#6b0015]/40 p-16 text-center space-y-3 shadow-2xl">
@@ -494,16 +445,13 @@
 
     @push('scripts')
     <script>
-        function scrollCategorias(direction) {
-            const container = document.getElementById('contenedorCategoriasSlider');
-            if (!container) return;
-            const scrollAmount = 260;
-            if (direction === 'left') {
-                container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-            } else {
-                container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        // Centrar la categoría activa al cargar o recargar la página (útil en móvil/tablet)
+        document.addEventListener('DOMContentLoaded', function () {
+            const activaEl = document.querySelector('#contenedorCategoriasSlider [data-categoria-activa="1"]');
+            if (activaEl) {
+                activaEl.scrollIntoView({ behavior: 'auto', inline: 'center', block: 'nearest' });
             }
-        }
+        });
 
         // =========================================================================
         // Temporizador de Cronómetro en Vivo para los Cards
@@ -573,7 +521,7 @@
                     // Escuchar canal de ranking y categorías
                     window.Echo.channel('ranking')
                         .listen('.categoria.activa.cambiada', function () {
-                            window.location.reload();
+                            window.location.href = "{{ route('jurado.inicio') }}";
                         })
                         .listen('.categoria.finalizada', function () {
                             window.location.reload();
