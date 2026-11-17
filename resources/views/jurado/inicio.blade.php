@@ -316,7 +316,7 @@
                                         @elseif ($yaCalifique)
                                             <a href="{{ route('jurado.calificaciones.corregir.form', $pres) }}"
                                                class="w-full py-2 px-3 rounded-xl bg-[#260a15]/90 hover:bg-[#3d0f22] text-amber-300 font-bold text-xs border border-amber-500/40 text-center transition shadow flex items-center justify-center gap-1.5">
-                                                <span>Corregir Nota ({{ number_format($miCalificacion->nota_total, 2) }} pts)</span>
+                                                <span>Calificación Emitida</span>
                                             </a>
                                         @else
                                             <a href="{{ route('jurado.presentaciones.actual', ['presentacion_id' => $pres->id]) }}"
