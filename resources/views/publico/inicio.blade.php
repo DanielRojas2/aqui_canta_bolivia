@@ -59,6 +59,61 @@
             .podio-card-shadow-1 {
                 box-shadow: 0 32px 68px -10px rgba(0, 0, 0, 0.98), 0 16px 34px -8px rgba(0, 0, 0, 0.92), 0 0 36px rgba(212, 175, 55, 0.28);
             }
+
+            /* Animaciones dinámicas del Carrusel de Participantes (5 en 5 + Vista Todos) */
+            @keyframes galaCardEnter {
+                0% {
+                    opacity: 0;
+                    transform: translateY(18px) scale(0.96);
+                }
+                100% {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                }
+            }
+            .carousel-card-enter {
+                animation: galaCardEnter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+            }
+            .carousel-card-hidden {
+                display: none !important;
+            }
+            [data-purpose="desktop-showcase-grid"]:not(.showcase-todos-mode) .musician-card {
+                flex: 0 1 240px;
+                min-width: 0;
+            }
+            .showcase-todos-mode {
+                max-width: 1050px !important;
+                display: flex !important;
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+                align-items: center !important;
+                align-content: center !important;
+                gap: 1rem !important;
+            }
+            .showcase-todos-mode .musician-card {
+                width: 185px !important;
+                min-height: 0 !important;
+                height: 215px !important;
+                max-width: 185px !important;
+                aspect-ratio: auto !important;
+                padding: 0.6rem !important;
+            }
+            .showcase-todos-mode .musician-card .corner-bracket {
+                width: 12px !important;
+                height: 12px !important;
+            }
+            .showcase-todos-mode .musician-card .card-score-value {
+                font-size: 1.85rem !important;
+                line-height: 1 !important;
+            }
+            .showcase-todos-mode .musician-card h2 {
+                font-size: 0.82rem !important;
+                line-height: 1.15 !important;
+            }
+            .showcase-todos-mode .musician-card .card-jurados-dots {
+                margin-top: 0.35rem !important;
+                gap: 0.35rem !important;
+            }
         </style>
 
         @if ($esPodio && $ranking->isNotEmpty())
@@ -502,7 +557,7 @@
                 </div>
             @else
                 <!-- BEGIN: ContestantsGrid -->
-                <main class="w-full max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 md:gap-6 justify-items-center relative z-10" data-purpose="desktop-showcase-grid">
+                <main class="w-full max-w-[1400px] mx-auto min-h-[calc(100vh-280px)] flex flex-wrap lg:flex-nowrap items-center justify-center content-center gap-4 xl:gap-6 relative z-10 py-1" data-purpose="desktop-showcase-grid">
                     @foreach ($ranking as $item)
                         @php
                             $pos = $item['posicion'];
@@ -527,6 +582,35 @@
                     @endforeach
                 </main>
                 <!-- END: ContestantsGrid -->
+
+                <!-- Botón Flotante de Herramientas del Carrusel (solo visible si > 5 participantes) -->
+                <div id="carouselControlsBar" style="display: none;" class="fixed bottom-5 right-5 z-50 flex-col items-end gap-2 select-none">
+                    <div id="carouselToolsPopover" style="display: none;" class="bg-[#120409]/95 backdrop-blur-xl border border-amber-500/40 rounded-2xl p-3 shadow-[0_12px_40px_rgba(0,0,0,0.85)] space-y-2.5 min-w-[220px]">
+                        <div class="flex items-center justify-between gap-2 border-b border-white/10 pb-1.5">
+                            <span class="text-[10px] font-bold uppercase tracking-widest text-amber-300 font-cinzel">Carrusel en Vivo</span>
+                            <button type="button"
+                                    id="carouselToggleBtn"
+                                    onclick="toggleCarouselPause()"
+                                    class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#240712] hover:bg-[#380b1c] text-amber-200 border border-amber-500/30 transition cursor-pointer">
+                                ⏸ Pausar
+                            </button>
+                        </div>
+                        <div id="carouselIndicators" class="flex flex-wrap items-center gap-1.5"></div>
+                        <div class="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                            <div id="carouselProgressBar" class="h-full bg-gradient-to-r from-amber-500 to-amber-200 transition-all duration-100" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <button type="button"
+                            id="carouselFloatingBtn"
+                            onclick="toggleCarouselToolsPopover(event)"
+                            title="Herramientas de carrusel"
+                            class="w-11 h-11 rounded-full bg-[#16050c]/90 hover:bg-[#2a0916] border border-amber-500/50 text-amber-300 shadow-[0_6px_24px_rgba(0,0,0,0.75)] backdrop-blur-md flex items-center justify-center opacity-70 hover:opacity-100 hover:scale-105 transition-all cursor-pointer">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                        </svg>
+                    </button>
+                </div>
             @endif
 
         @endif
@@ -868,6 +952,10 @@
                     }
                 });
             });
+
+            if (typeof window.actualizarCarrouselPublico === 'function') {
+                window.actualizarCarrouselPublico(false);
+            }
         }
 
         // Actualización inteligente del DOM con preservación de nodos
@@ -946,6 +1034,10 @@
                                     }
                                 });
                             });
+
+                            if (typeof window.actualizarCarrouselPublico === 'function') {
+                                window.actualizarCarrouselPublico(false);
+                            }
 
                             // Actualizar modales de desglose
                             const modalesNuevos = nuevoContenido.querySelectorAll('[id^="modalDesglose_"]');
@@ -1134,6 +1226,163 @@
                 document.querySelectorAll('[id^="modalDesglose_"]').forEach(m => m.classList.add('hidden'));
             }
         });
+
+        // ==============================================================
+        // CARRUSEL AUTOMÁTICO (DE 5 EN 5 + TRANSICIÓN A TODOS)
+        // ==============================================================
+        (function () {
+            const SLIDE_SIZE = 5;
+            const SLIDE_DURATION_MS = 6500;
+            const TICK_MS = 100;
+
+            let slideActual = 0;
+            let pausado = false;
+            let elapsedMs = 0;
+
+            function obtenerCards() {
+                const grid = document.querySelector('[data-purpose="desktop-showcase-grid"]');
+                if (!grid) return { grid: null, cards: [] };
+                return {
+                    grid,
+                    cards: Array.from(grid.querySelectorAll('.musician-card[data-card-id]'))
+                };
+            }
+
+            function renderizarIndicadores(totalChunks, totalCards) {
+                const cont = document.getElementById('carouselIndicators');
+                if (!cont) return;
+
+                let html = '';
+                for (let i = 0; i < totalChunks; i++) {
+                    const inicio = i * SLIDE_SIZE + 1;
+                    const fin = Math.min((i + 1) * SLIDE_SIZE, totalCards);
+                    const activo = (slideActual === i);
+                    html += `<button type="button" onclick="irASlideCarrousel(${i})" class="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase transition cursor-pointer ${activo ? 'bg-amber-400 text-[#120409] shadow-[0_0_10px_rgba(251,191,36,0.45)]' : 'bg-[#1a050d] text-slate-300 hover:text-white border border-white/10'}">${inicio}–${fin}</button>`;
+                }
+
+                const esTodos = (slideActual === totalChunks);
+                html += `<button type="button" onclick="irASlideCarrousel(${totalChunks})" class="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase transition cursor-pointer ${esTodos ? 'bg-amber-400 text-[#120409] shadow-[0_0_10px_rgba(251,191,36,0.45)]' : 'bg-[#1a050d] text-amber-200 hover:text-white border border-amber-500/30'}">Todos (${totalCards})</button>`;
+
+                cont.innerHTML = html;
+            }
+
+            window.actualizarCarrouselPublico = function (animar = true) {
+                const { grid, cards } = obtenerCards();
+                const bar = document.getElementById('carouselControlsBar');
+
+                if (!grid || cards.length === 0) {
+                    if (bar) bar.style.display = 'none';
+                    return;
+                }
+
+                if (cards.length <= SLIDE_SIZE) {
+                    grid.classList.remove('showcase-todos-mode');
+                    cards.forEach(c => {
+                        c.classList.remove('carousel-card-hidden', 'carousel-card-enter');
+                        c.style.animationDelay = '';
+                    });
+                    if (bar) bar.style.display = 'none';
+                    return;
+                }
+
+                if (bar) bar.style.display = 'flex';
+
+                const totalChunks = Math.ceil(cards.length / SLIDE_SIZE);
+                const totalSlides = totalChunks + 1; // chunks de 5 + vista "Todos"
+                if (slideActual >= totalSlides) {
+                    slideActual = 0;
+                }
+
+                const esVistaTodos = (slideActual === totalChunks);
+                if (esVistaTodos) {
+                    grid.classList.add('showcase-todos-mode');
+                } else {
+                    grid.classList.remove('showcase-todos-mode');
+                }
+
+                const start = slideActual * SLIDE_SIZE;
+                const end = start + SLIDE_SIZE;
+
+                let visibleIdx = 0;
+                cards.forEach((card, idx) => {
+                    const visible = esVistaTodos || (idx >= start && idx < end);
+                    if (visible) {
+                        card.classList.remove('carousel-card-hidden');
+                        if (animar) {
+                            card.classList.remove('carousel-card-enter');
+                            void card.offsetWidth;
+                            card.style.animationDelay = `${visibleIdx * 55}ms`;
+                            card.classList.add('carousel-card-enter');
+                        }
+                        visibleIdx++;
+                    } else {
+                        card.classList.add('carousel-card-hidden');
+                        card.classList.remove('carousel-card-enter');
+                        card.style.animationDelay = '';
+                    }
+                });
+
+                renderizarIndicadores(totalChunks, cards.length);
+            };
+
+            window.irASlideCarrousel = function (idx) {
+                slideActual = idx;
+                elapsedMs = 0;
+                window.actualizarCarrouselPublico(true);
+            };
+
+            window.toggleCarouselPause = function () {
+                pausado = !pausado;
+                const btn = document.getElementById('carouselToggleBtn');
+                if (btn) {
+                    btn.textContent = pausado ? '▶ Reanudar' : '⏸ Pausar';
+                }
+            };
+
+            window.toggleCarouselToolsPopover = function (e) {
+                if (e) e.stopPropagation();
+                const pop = document.getElementById('carouselToolsPopover');
+                if (!pop) return;
+                pop.style.display = (pop.style.display === 'none' || pop.style.display === '') ? 'block' : 'none';
+            };
+
+            document.addEventListener('click', function (e) {
+                const bar = document.getElementById('carouselControlsBar');
+                const pop = document.getElementById('carouselToolsPopover');
+                if (pop && bar && !bar.contains(e.target)) {
+                    pop.style.display = 'none';
+                }
+            });
+
+            function hayModalAbierto() {
+                return Array.from(document.querySelectorAll('[id^="modalDesglose_"]')).some(m => !m.classList.contains('hidden'));
+            }
+
+            setInterval(function () {
+                const { cards } = obtenerCards();
+                if (cards.length <= SLIDE_SIZE) return;
+                if (pausado || hayModalAbierto()) return;
+
+                elapsedMs += TICK_MS;
+                const progressEl = document.getElementById('carouselProgressBar');
+                if (progressEl) {
+                    progressEl.style.width = `${Math.min(100, (elapsedMs / SLIDE_DURATION_MS) * 100)}%`;
+                }
+
+                if (elapsedMs >= SLIDE_DURATION_MS) {
+                    elapsedMs = 0;
+                    const totalSlides = Math.ceil(cards.length / SLIDE_SIZE) + 1;
+                    slideActual = (slideActual + 1) % totalSlides;
+                    window.actualizarCarrouselPublico(true);
+                }
+            }, TICK_MS);
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => window.actualizarCarrouselPublico(true));
+            } else {
+                window.actualizarCarrouselPublico(true);
+            }
+        })();
     </script>
 
 </x-layouts.publico>

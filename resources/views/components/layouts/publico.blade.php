@@ -130,6 +130,22 @@
                 scrollbar-width: thin;
                 scrollbar-color: #6b0015 transparent;
             }
+
+            @keyframes braseroPulse {
+                0%, 100% {
+                    opacity: 0.55;
+                    transform: scaleY(1);
+                }
+                50% {
+                    opacity: 0.85;
+                    transform: scaleY(1.08);
+                }
+            }
+            .brasero-bottom-glow {
+                background: radial-gradient(ellipse 85% 55% at 50% 100%, rgba(234, 88, 12, 0.28) 0%, rgba(185, 28, 28, 0.22) 38%, rgba(128, 0, 32, 0.08) 68%, transparent 100%);
+                animation: braseroPulse 5.5s ease-in-out infinite;
+                transform-origin: bottom center;
+            }
         </style>
 
 
@@ -140,6 +156,10 @@
         
         <!-- Fondo Oruro Gala: Carmesí profundo y Guindo (2-3 tonos más claro para mayor contraste con las tarjetas) -->
         <div class="fixed inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_110%_85%_at_50%_-10%,rgba(175,18,52,0.58)_0%,rgba(52,11,25,0.92)_55%,rgba(26,7,16,0.97)_100%)]"></div>
+
+        <!-- Animación tipo Brasero: Resplandor cálido inferior + chispas ascendentes -->
+        <div aria-hidden="true" class="fixed inset-x-0 bottom-0 h-[48vh] pointer-events-none z-0 brasero-bottom-glow"></div>
+        <canvas id="braseroEmbersCanvas" aria-hidden="true" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
 
         <div class="relative z-10 flex flex-col min-h-screen justify-between">
             
@@ -182,13 +202,13 @@
             </header>
 
             <!-- Contenido Principal -->
-            <main class="flex-1 max-w-[1700px] w-full mx-auto px-3 sm:px-6 lg:px-10 py-6">
+            <main class="flex-1 max-w-[1700px] w-full mx-auto px-3 sm:px-6 lg:px-10 py-4">
                 {{ $slot }}
             </main>
 
             <!-- Pie de Página de Gala -->
-            <footer class="mt-12 border-t border-[#520012] bg-[#13040a]/90 backdrop-blur-md">
-                <div class="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-10 py-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+            <footer class="mt-4 border-t border-[#520012] bg-[#13040a]/90 backdrop-blur-md">
+                <div class="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-10 py-4 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400">
                     <div class="flex items-center gap-3">
                         <span class="font-cinzel font-bold text-[#d4af37] uppercase tracking-widest text-xs">Aquí Canta Bolivia</span>
                         <span class="text-[#6b0015]">·</span>
@@ -202,5 +222,87 @@
             </footer>
 
         </div>
+
+        <script>
+            (function () {
+                const canvas = document.getElementById('braseroEmbersCanvas');
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return;
+
+                let width = 0;
+                let height = 0;
+                const EMBER_COUNT = 48;
+                const embers = [];
+                const colors = [
+                    'rgba(251, 191, 36, ',   // dorado
+                    'rgba(245, 158, 11, ',   // ámbar
+                    'rgba(249, 115, 22, ',   // brasa naranja
+                    'rgba(239, 68, 68, ',    // carmesí brasa
+                ];
+
+                function resize() {
+                    width = canvas.width = window.innerWidth;
+                    height = canvas.height = window.innerHeight;
+                }
+
+                function crearBrasa(aleatoriaY = false) {
+                    return {
+                        x: Math.random() * (width || window.innerWidth),
+                        y: aleatoriaY ? Math.random() * (height || window.innerHeight) : (height || window.innerHeight) + Math.random() * 40,
+                        radius: 1.1 + Math.random() * 2.4,
+                        speedY: 0.35 + Math.random() * 0.85,
+                        driftX: (Math.random() - 0.5) * 0.4,
+                        phase: Math.random() * Math.PI * 2,
+                        alphaMax: 0.35 + Math.random() * 0.55,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                    };
+                }
+
+                resize();
+                window.addEventListener('resize', resize);
+
+                for (let i = 0; i < EMBER_COUNT; i++) {
+                    embers.push(crearBrasa(true));
+                }
+
+                function animar() {
+                    ctx.clearRect(0, 0, width, height);
+
+                    for (let i = 0; i < embers.length; i++) {
+                        const e = embers[i];
+                        e.y -= e.speedY;
+                        e.phase += 0.025;
+                        e.x += e.driftX + Math.sin(e.phase) * 0.28;
+
+                        const progreso = 1 - Math.max(0, Math.min(1, e.y / height));
+                        const fadeIn = Math.min(1, progreso * 4);
+                        const fadeOut = Math.max(0, 1 - Math.pow(progreso, 1.6));
+                        const flicker = 0.75 + 0.25 * Math.sin(e.phase * 2.3);
+                        const alpha = e.alphaMax * fadeIn * fadeOut * flicker;
+
+                        if (alpha > 0.01) {
+                            ctx.beginPath();
+                            ctx.arc(e.x, e.y, e.radius * 2.2, 0, Math.PI * 2);
+                            ctx.fillStyle = `${e.color}${(alpha * 0.28).toFixed(3)})`;
+                            ctx.fill();
+
+                            ctx.beginPath();
+                            ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
+                            ctx.fillStyle = `${e.color}${alpha.toFixed(3)})`;
+                            ctx.fill();
+                        }
+
+                        if (e.y < -20 || e.x < -20 || e.x > width + 20) {
+                            embers[i] = crearBrasa(false);
+                        }
+                    }
+
+                    requestAnimationFrame(animar);
+                }
+
+                requestAnimationFrame(animar);
+            })();
+        </script>
     </body>
 </html>
