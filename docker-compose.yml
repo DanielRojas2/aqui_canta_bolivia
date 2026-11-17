@@ -1,6 +1,6 @@
 services:
   # =========================================================================
-  # 1. Base de Datos MySQL 8.0 (Aislada en red interna + puerto host 3307)
+  # 1. Base de Datos MySQL 8.0 (Aislada en red interna + loopback 127.0.0.1:3307)
   # =========================================================================
   mysql:
     image: mysql:8.0
@@ -16,11 +16,10 @@ services:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
     ports:
-      # Se enlaza por defecto a 127.0.0.1:3307 para no chocar con MySQL/MariaDB del host (3306)
+      # Enlazado a 127.0.0.1:3307 por defecto para no chocar con MySQL/MariaDB del host ni exponerse a IP pública
       - "${DB_BIND_IP:-127.0.0.1}:${DB_EXTERNAL_PORT:-3307}:3306"
     volumes:
       - ./docker/mysql/data:/var/lib/mysql
-      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
     networks:
       acb_net:
         ipv4_address: 172.28.10.10
@@ -31,7 +30,7 @@ services:
       retries: 15
 
   # =========================================================================
-  # 2. Aplicación Web Laravel 12 (Instala deps, crea BD, migra, seedea y sirve)
+  # 2. Aplicación Web Laravel 12 (Nginx + PHP-FPM, puerto externo 9080)
   # =========================================================================
   app:
     build:
@@ -40,40 +39,26 @@ services:
     image: aqui_canta_bolivia_app:latest
     container_name: acb_app
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
       CONTAINER_ROLE: app
       TZ: America/La_Paz
-      APP_NAME: "Aquí Canta Bolivia"
-      APP_ENV: ${APP_ENV:-production}
-      APP_DEBUG: ${APP_DEBUG:-false}
-      APP_URL: ${APP_URL:-http://localhost:8085}
-      # Conexión interna por red Docker hacia el contenedor mysql:3306
+      # Red interna Docker hacia MySQL y Reverb
       DB_CONNECTION: mysql
       DB_HOST: mysql
       DB_PORT: 3306
-      DB_DATABASE: ${DB_DATABASE:-festival_acb}
-      DB_USERNAME: ${DB_USERNAME:-acb_app}
-      DB_PASSWORD: ${DB_PASSWORD:-acb_local_2026}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_acb_2026}
-      # Drivers sobre base de datos
-      SESSION_DRIVER: database
-      CACHE_STORE: database
-      QUEUE_CONNECTION: database
-      BROADCAST_CONNECTION: reverb
-      # Comunicación interna Backend -> Contenedor Reverb (http://reverb:6080)
-      REVERB_APP_ID: ${REVERB_APP_ID:-935767}
-      REVERB_APP_KEY: ${REVERB_APP_KEY:-rlml9nwlxkswhus5t6ca}
-      REVERB_APP_SECRET: ${REVERB_APP_SECRET:-xzx65mxlpwktbspb0bpp}
       REVERB_HOST: reverb
       REVERB_PORT: 6080
       REVERB_SCHEME: http
-      # Variables Vite para que el navegador cliente conecte al puerto externo de Reverb
+      # Variables Vite compiladas al iniciar el contenedor
+      VITE_APP_NAME: ${APP_NAME:-Aquí Canta Bolivia}
       VITE_REVERB_APP_KEY: ${REVERB_APP_KEY:-rlml9nwlxkswhus5t6ca}
-      VITE_REVERB_PORT: ${REVERB_EXTERNAL_PORT:-6085}
-      VITE_REVERB_SCHEME: ${REVERB_EXTERNAL_SCHEME:-http}
+      VITE_REVERB_PORT: ${VITE_REVERB_PORT:-6080}
+      VITE_REVERB_SCHEME: ${VITE_REVERB_SCHEME:-http}
     ports:
-      # Puerto externo 8085 por defecto para no chocar con 80, 443, 8000 ni 8080 en el servidor Debian
-      - "${APP_BIND_IP:-0.0.0.0}:${APP_EXTERNAL_PORT:-8085}:8000"
+      # Puerto externo 9080 por defecto (configurable en .env con APP_BIND_IP / APP_EXTERNAL_PORT)
+      - "${APP_BIND_IP:-0.0.0.0}:${APP_EXTERNAL_PORT:-9080}:8000"
     volumes:
       - .:/var/www/html
     depends_on:
@@ -90,35 +75,31 @@ services:
       start_period: 30s
 
   # =========================================================================
-  # 3. Servidor WebSocket Laravel Reverb (Tiempo Real: Cronómetro y Ranking)
+  # 3. Servidor WebSocket Laravel Reverb (Tiempo Real, puerto externo 6080)
   # =========================================================================
   reverb:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: aqui_canta_bolivia_app:latest
     container_name: acb_reverb
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
       CONTAINER_ROLE: reverb
       TZ: America/La_Paz
-      APP_ENV: ${APP_ENV:-production}
-      APP_DEBUG: ${APP_DEBUG:-false}
       DB_CONNECTION: mysql
       DB_HOST: mysql
       DB_PORT: 3306
-      DB_DATABASE: ${DB_DATABASE:-festival_acb}
-      DB_USERNAME: ${DB_USERNAME:-acb_app}
-      DB_PASSWORD: ${DB_PASSWORD:-acb_local_2026}
-      BROADCAST_CONNECTION: reverb
-      REVERB_APP_ID: ${REVERB_APP_ID:-935767}
-      REVERB_APP_KEY: ${REVERB_APP_KEY:-rlml9nwlxkswhus5t6ca}
-      REVERB_APP_SECRET: ${REVERB_APP_SECRET:-xzx65mxlpwktbspb0bpp}
       REVERB_HOST: reverb
       REVERB_PORT: 6080
       REVERB_SCHEME: http
       REVERB_SERVER_HOST: 0.0.0.0
       REVERB_SERVER_PORT: 6080
     ports:
-      # Puerto externo 6085 por defecto para no chocar con servicios en 6080/8080
-      - "${REVERB_BIND_IP:-0.0.0.0}:${REVERB_EXTERNAL_PORT:-6085}:6080"
+      # Puerto externo 6080 por defecto (configurable en .env con REVERB_BIND_IP / REVERB_EXTERNAL_PORT)
+      - "${REVERB_BIND_IP:-0.0.0.0}:${REVERB_EXTERNAL_PORT:-6080}:6080"
     volumes:
       - .:/var/www/html
     depends_on:
@@ -129,11 +110,12 @@ services:
         ipv4_address: 172.28.10.30
 
   # =========================================================================
-  # 4. phpMyAdmin (Administración visual de BD en puerto no conflictivo 8086)
+  # 4. phpMyAdmin (Opcional bajo perfil "tools": docker compose --profile tools up -d)
   # =========================================================================
   phpmyadmin:
     image: docker.io/library/phpmyadmin:latest
     container_name: acb_phpmyadmin
+    profiles: ["tools"]
     restart: unless-stopped
     environment:
       PMA_HOST: mysql
@@ -142,8 +124,7 @@ services:
       PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_acb_2026}
       UPLOAD_LIMIT: 64M
     ports:
-      # Puerto externo 8086 (enlazado a localhost por seguridad y para evitar conflicto con 8080)
-      - "${PMA_BIND_IP:-127.0.0.1}:${PMA_EXTERNAL_PORT:-8086}:80"
+      - "${PMA_BIND_IP:-127.0.0.1}:${PMA_EXTERNAL_PORT:-9086}:80"
     depends_on:
       mysql:
         condition: service_healthy
