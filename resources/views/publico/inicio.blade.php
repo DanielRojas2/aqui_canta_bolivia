@@ -4,7 +4,7 @@
         $catId = $categoriaSeleccionada?->id;
     @endphp
 
-    <div id="rankingLiveWrapper" class="space-y-2 sm:space-y-3">
+    <div id="rankingLiveWrapper" data-categoria-id="{{ $catId ?? '' }}" class="space-y-2 sm:space-y-3">
 
         <!-- ============================================================== -->
         <!-- TEXTO DE GANADORES / CATEGORÍA Y HR DIVIDER DORADO             -->
@@ -107,8 +107,8 @@
                 line-height: 1 !important;
             }
             .showcase-todos-mode .musician-card h2 {
-                font-size: 0.82rem !important;
-                line-height: 1.15 !important;
+                font-size: 0.72rem !important;
+                line-height: 1.12 !important;
             }
             .showcase-todos-mode .musician-card .card-jurados-dots {
                 margin-top: 0.35rem !important;
@@ -582,35 +582,6 @@
                     @endforeach
                 </main>
                 <!-- END: ContestantsGrid -->
-
-                <!-- Botón Flotante de Herramientas del Carrusel (solo visible si > 5 participantes) -->
-                <div id="carouselControlsBar" style="display: none;" class="fixed bottom-5 right-5 z-50 flex-col items-end gap-2 select-none">
-                    <div id="carouselToolsPopover" style="display: none;" class="bg-[#120409]/95 backdrop-blur-xl border border-amber-500/40 rounded-2xl p-3 shadow-[0_12px_40px_rgba(0,0,0,0.85)] space-y-2.5 min-w-[220px]">
-                        <div class="flex items-center justify-between gap-2 border-b border-white/10 pb-1.5">
-                            <span class="text-[10px] font-bold uppercase tracking-widest text-amber-300 font-cinzel">Carrusel en Vivo</span>
-                            <button type="button"
-                                    id="carouselToggleBtn"
-                                    onclick="toggleCarouselPause()"
-                                    class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#240712] hover:bg-[#380b1c] text-amber-200 border border-amber-500/30 transition cursor-pointer">
-                                ⏸ Pausar
-                            </button>
-                        </div>
-                        <div id="carouselIndicators" class="flex flex-wrap items-center gap-1.5"></div>
-                        <div class="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                            <div id="carouselProgressBar" class="h-full bg-gradient-to-r from-amber-500 to-amber-200 transition-all duration-100" style="width: 0%;"></div>
-                        </div>
-                    </div>
-
-                    <button type="button"
-                            id="carouselFloatingBtn"
-                            onclick="toggleCarouselToolsPopover(event)"
-                            title="Herramientas de carrusel"
-                            class="w-11 h-11 rounded-full bg-[#16050c]/90 hover:bg-[#2a0916] border border-amber-500/50 text-amber-300 shadow-[0_6px_24px_rgba(0,0,0,0.75)] backdrop-blur-md flex items-center justify-center opacity-70 hover:opacity-100 hover:scale-105 transition-all cursor-pointer">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                        </svg>
-                    </button>
-                </div>
             @endif
 
         @endif
@@ -676,6 +647,35 @@
             </div>
         @endforeach
 
+    </div>
+
+    <!-- Botón Flotante de Herramientas del Carrusel (fuera de rankingLiveWrapper para preservar estado al cambiar categoría) -->
+    <div id="carouselControlsBar" style="display: none;" class="fixed bottom-5 right-5 z-50 flex-col items-end gap-2 select-none">
+        <div id="carouselToolsPopover" style="display: none;" class="bg-[#120409]/95 backdrop-blur-xl border border-amber-500/40 rounded-2xl p-3 shadow-[0_12px_40px_rgba(0,0,0,0.85)] space-y-2.5 min-w-[220px]">
+            <div class="flex items-center justify-between gap-2 border-b border-white/10 pb-1.5">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-amber-300 font-cinzel">Carrusel en Vivo</span>
+                <button type="button"
+                        id="carouselToggleBtn"
+                        onclick="toggleCarouselPause()"
+                        class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#240712] hover:bg-[#380b1c] text-amber-200 border border-amber-500/30 transition cursor-pointer">
+                    ⏸ Pausar
+                </button>
+            </div>
+            <div id="carouselIndicators" class="flex flex-wrap items-center gap-1.5"></div>
+            <div class="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                <div id="carouselProgressBar" class="h-full bg-gradient-to-r from-amber-500 to-amber-200 transition-all duration-100" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <button type="button"
+                id="carouselFloatingBtn"
+                onclick="toggleCarouselToolsPopover(event)"
+                title="Herramientas de carrusel"
+                class="w-11 h-11 rounded-full bg-[#16050c]/90 hover:bg-[#2a0916] border border-amber-500/50 text-amber-300 shadow-[0_6px_24px_rgba(0,0,0,0.75)] backdrop-blur-md flex items-center justify-center opacity-70 hover:opacity-100 hover:scale-105 transition-all cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+            </svg>
+        </button>
     </div>
 
     <!-- ============================================================== -->
@@ -894,6 +894,13 @@
                 return;
             }
 
+            const wrapper = document.getElementById('rankingLiveWrapper');
+            const catActual = wrapper ? wrapper.getAttribute('data-categoria-id') : '';
+            if (data.categoria_id && catActual && String(data.categoria_id) !== String(catActual)) {
+                refrescarRankingEnVivo();
+                return;
+            }
+
             const gridContainer = document.querySelector('[data-purpose="desktop-showcase-grid"]');
             if (!gridContainer) {
                 // Si estamos en vista de podio o estado finalizado, refrescar por fetch
@@ -982,13 +989,61 @@
                     const contenedorActual = document.getElementById('rankingLiveWrapper');
 
                     if (nuevoContenido && contenedorActual) {
+                        const catActual = contenedorActual.getAttribute('data-categoria-id') || '';
+                        const catNueva = nuevoContenido.getAttribute('data-categoria-id') || '';
+
                         const gridActual = contenedorActual.querySelector('[data-purpose="desktop-showcase-grid"]');
                         const gridNuevo = nuevoContenido.querySelector('[data-purpose="desktop-showcase-grid"]');
 
-                        // Si ambos son modo Gala Grid, reordenar en sitio preservando nodos
+                        // Si cambió la categoría, reemplazar completamente para no mezclar participantes de la categoría anterior
+                        if (catActual !== catNueva) {
+                            contenedorActual.setAttribute('data-categoria-id', catNueva);
+                            contenedorActual.innerHTML = nuevoContenido.innerHTML;
+                            if (typeof window.irASlideCarrousel === 'function') {
+                                window.irASlideCarrousel(0);
+                            } else if (typeof window.actualizarCarrouselPublico === 'function') {
+                                window.actualizarCarrouselPublico(true);
+                            }
+                            return;
+                        }
+
+                        // Si ambos son modo Gala Grid de la misma categoría, verificar si realmente hay cambios antes de tocar el DOM
                         if (gridActual && gridNuevo) {
-                            animarReordenamientoCards(gridActual, () => {
-                                const newCards = Array.from(gridNuevo.querySelectorAll('.musician-card[data-card-id]'));
+                            const oldCards = Array.from(gridActual.querySelectorAll('.musician-card[data-card-id]'));
+                            const newCards = Array.from(gridNuevo.querySelectorAll('.musician-card[data-card-id]'));
+
+                            const oldSignature = oldCards.map(c => {
+                                const id = c.getAttribute('data-card-id');
+                                const s = c.querySelector('.card-score-value')?.textContent.trim() || '';
+                                const d = c.querySelector('.card-jurados-dots')?.getAttribute('data-calificados-count') || '0';
+                                return `${id}:${s}:${d}`;
+                            }).join('|');
+
+                            const newSignature = newCards.map(c => {
+                                const id = c.getAttribute('data-card-id');
+                                const s = c.querySelector('.card-score-value')?.textContent.trim() || '';
+                                const d = c.querySelector('.card-jurados-dots')?.getAttribute('data-calificados-count') || '0';
+                                return `${id}:${s}:${d}`;
+                            }).join('|');
+
+                            if (oldSignature === newSignature) {
+                                return;
+                            }
+
+                            const oldOrder = oldCards.map(c => c.getAttribute('data-card-id')).join(',');
+                            const newOrder = newCards.map(c => c.getAttribute('data-card-id')).join(',');
+                            const ordenCambio = oldOrder !== newOrder;
+
+                            const aplicarCambiosGrid = () => {
+                                const newIds = new Set(newCards.map(c => c.getAttribute('data-card-id')));
+
+                                // Eliminar cards que ya no pertenecen al ranking actual
+                                oldCards.forEach(oldCard => {
+                                    if (!newIds.has(oldCard.getAttribute('data-card-id'))) {
+                                        oldCard.remove();
+                                    }
+                                });
+
                                 newCards.forEach(newCard => {
                                     const id = newCard.getAttribute('data-card-id');
                                     const existingCard = gridActual.querySelector(`.musician-card[data-card-id="${id}"]`);
@@ -1028,12 +1083,20 @@
                                             oldDots.setAttribute('title', newDots.getAttribute('title') || '');
                                         }
 
-                                        gridActual.appendChild(existingCard);
+                                        if (ordenCambio) {
+                                            gridActual.appendChild(existingCard);
+                                        }
                                     } else {
                                         gridActual.appendChild(newCard.cloneNode(true));
                                     }
                                 });
-                            });
+                            };
+
+                            if (ordenCambio) {
+                                animarReordenamientoCards(gridActual, aplicarCambiosGrid);
+                            } else {
+                                aplicarCambiosGrid();
+                            }
 
                             if (typeof window.actualizarCarrouselPublico === 'function') {
                                 window.actualizarCarrouselPublico(false);
@@ -1135,35 +1198,47 @@
             }
         }
 
-        // Suscripción a WebSockets
+        // Debounce para agrupar ráfagas de eventos WebSocket en una sola actualización limpia
+        let refrescoDebounceTimer = null;
+        function agendarRefrescoEnVivo(delayMs = 450) {
+            if (refrescoDebounceTimer) {
+                clearTimeout(refrescoDebounceTimer);
+            }
+            refrescoDebounceTimer = setTimeout(() => {
+                refrescoDebounceTimer = null;
+                refrescarRankingEnVivo();
+            }, delayMs);
+        }
+
+        // Suscripción única a WebSockets
+        let echoSuscrito = false;
         function iniciarEscuchaEcho() {
+            if (echoSuscrito) return true;
             if (!window.Echo) return false;
 
             try {
                 const canalRanking = window.Echo.channel('ranking');
                 if (canalRanking) {
                     canalRanking.listen('.ranking.actualizado', (data) => {
-                        procesarRankingWebSocket(data);
-                    });
-                    canalRanking.listen('ranking.actualizado', (data) => {
+                        if (refrescoDebounceTimer) {
+                            clearTimeout(refrescoDebounceTimer);
+                            refrescoDebounceTimer = null;
+                        }
                         procesarRankingWebSocket(data);
                     });
                     canalRanking.listen('.podio.paso_revelado', (data) => {
                         aplicarPasoPodio(data);
                     });
-                    canalRanking.listen('podio.paso_revelado', (data) => {
-                        aplicarPasoPodio(data);
-                    });
-                    
-                    ['.calificacion.registrada', 'calificacion.registrada', '.calificacion.corregida', 'calificacion.corregida', '.jurado_secreto.revelado', 'jurado_secreto.revelado', '.categoria.finalizada', 'categoria.finalizada', '.categoria.activa.cambiada', 'categoria.activa.cambiada', '.presentacion.estado.cambiado', 'presentacion.estado.cambiado'].forEach(ev => {
+
+                    ['.calificacion.registrada', '.calificacion.corregida', '.jurado_secreto.revelado', '.categoria.finalizada', '.categoria.activa.cambiada'].forEach(ev => {
                         canalRanking.listen(ev, (data) => {
-                            if (ev.includes('calificacion.registrada')) {
+                            if (ev === '.calificacion.registrada') {
                                 marcarVotoIndividualWebSocket(data);
                             }
                             if (data && data.ranking) {
                                 procesarRankingWebSocket(data);
                             } else {
-                                refrescarRankingEnVivo();
+                                agendarRefrescoEnVivo(ev === '.categoria.activa.cambiada' ? 150 : 600);
                             }
                         });
                     });
@@ -1174,24 +1249,22 @@
                     canalPresentaciones.listen('.podio.paso_revelado', (data) => {
                         aplicarPasoPodio(data);
                     });
-                    canalPresentaciones.listen('podio.paso_revelado', (data) => {
-                        aplicarPasoPodio(data);
-                    });
 
-                    ['.calificacion.registrada', 'calificacion.registrada', '.calificacion.corregida', 'calificacion.corregida', '.presentacion.estado.cambiado', 'presentacion.estado.cambiado', '.cronometro.actualizado', 'cronometro.actualizado', '.categoria.activa.cambiada', 'categoria.activa.cambiada'].forEach(ev => {
+                    ['.calificacion.registrada', '.calificacion.corregida', '.categoria.activa.cambiada'].forEach(ev => {
                         canalPresentaciones.listen(ev, (data) => {
-                            if (ev.includes('calificacion.registrada')) {
+                            if (ev === '.calificacion.registrada') {
                                 marcarVotoIndividualWebSocket(data);
                             }
                             if (data && data.ranking) {
                                 procesarRankingWebSocket(data);
                             } else {
-                                refrescarRankingEnVivo();
+                                agendarRefrescoEnVivo(600);
                             }
                         });
                     });
                 }
 
+                echoSuscrito = true;
                 return true;
             } catch (e) {
                 console.warn('Error suscribiendo a canales Echo:', e);
@@ -1216,10 +1289,9 @@
         } else {
             setupLiveSync();
         }
-        window.addEventListener('load', setupLiveSync);
 
-        // Polling de respaldo de baja frecuencia para evitar colisiones
-        setInterval(refrescarRankingEnVivo, 8000);
+        // Polling de respaldo de baja frecuencia (solo actúa si hay cambios reales en el ranking)
+        setInterval(refrescarRankingEnVivo, 25000);
 
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
@@ -1232,7 +1304,7 @@
         // ==============================================================
         (function () {
             const SLIDE_SIZE = 5;
-            const SLIDE_DURATION_MS = 6500;
+            const SLIDE_DURATION_MS = 10000;
             const TICK_MS = 100;
 
             let slideActual = 0;

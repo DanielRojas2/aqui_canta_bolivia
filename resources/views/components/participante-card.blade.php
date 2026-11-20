@@ -47,34 +47,31 @@
     <div aria-hidden="true" class="absolute inset-0 bg-gradient-to-b from-stone-900/55 via-[#15120e]/55 to-black/95 z-[1] pointer-events-none" style="background: linear-gradient(to bottom, rgba(28, 25, 23, 0.55), rgba(21, 18, 14, 0.55), rgba(0, 0, 0, 0.95));"></div>
     <div aria-hidden="true" class="absolute inset-0 opacity-15 card-dot-pattern z-[2] pointer-events-none"></div>
 
-    <!-- Header con Número y Bandera -->
+    <!-- Header con Departamento y Bandera -->
     <header class="relative z-10 px-4 pt-4 flex flex-col gap-2" data-purpose="card-top-category">
-        <div class="flex items-center justify-between">
-            <span class="card-numero-value text-[12px] tracking-[0.2em] uppercase font-bold text-gold-400/90 drop-shadow-md" style="color: #fbbf24;">
-                N° {{ $numero }}
+        <div class="flex items-center justify-between gap-2">
+            <span class="card-departamento-value text-[11px] tracking-[0.16em] uppercase font-bold text-gold-400/90 drop-shadow-md truncate" style="color: #fbbf24;">
+                {{ $departamento ?? 'Bolivia' }}
             </span>
             @if ($bandera)
-                <img class="w-3.5 h-3.5 object-cover" src="{{ $bandera }}" alt="Bandera de {{ $departamento ?? 'Bolivia' }}">
+                <img class="w-4 h-3.5 object-cover shrink-0 rounded-[1px]" src="{{ $bandera }}" alt="Bandera de {{ $departamento ?? 'Bolivia' }}">
             @endif
         </div>
         <div class="w-full h-px" style="background: linear-gradient(to right, transparent, rgba(212, 175, 55, 0.4), transparent);"></div>
     </header>
 
-    <!-- Parte baja: Calificación sobre el Nombre y Departamento -->
-    <div class="relative z-10 px-3 pb-4 mt-auto flex flex-col items-center text-center" data-purpose="artist-info-and-score">
+    <!-- Parte baja: Calificación sobre el Nombre completo -->
+    <div class="relative z-10 px-2.5 pb-4 mt-auto flex flex-col items-center text-center" data-purpose="artist-info-and-score">
         <div class="flex items-baseline gap-1 mb-1">
             <span class="card-score-value font-serif text-4xl sm:text-5xl font-extrabold tracking-tight gold-gradient-text drop-shadow-[0_2px_12px_rgba(212,175,55,0.45)]">
                 {{ $notaTexto }}
             </span>
             <span class="text-[11px] font-semibold text-yellow-200/50 uppercase tracking-wider font-sans">/100</span>
         </div>
-        <div aria-hidden="true" class="w-8 h-0.5 rounded-full mb-2" style="background-color: rgba(212, 175, 55, 0.5);"></div>
-        <h2 class="font-serif text-xl font-bold tracking-widest text-amber-50 uppercase drop-shadow-md line-clamp-1" title="{{ $nombre }}">
+        <div aria-hidden="true" class="w-8 h-0.5 rounded-full mb-1.5" style="background-color: rgba(212, 175, 55, 0.5);"></div>
+        <h2 class="font-serif text-sm sm:text-base font-bold tracking-wide leading-tight text-amber-50 uppercase drop-shadow-md break-words" title="{{ $nombre }}">
             {{ $nombre }}
         </h2>
-        <span class="flex bandera-bolivia justify-items-center text-xs text-stone-300 font-sans mt-0.5">
-            {{ $departamento ?? 'Bolivia' }}
-        </span>
 
         <!-- Indicador de 5 jurados (rojo/vacío = pendiente, verde = voto emitido; '?' en jurado secreto) -->
         <div class="card-jurados-dots flex items-center justify-center gap-2 mt-2.5 pt-1"
