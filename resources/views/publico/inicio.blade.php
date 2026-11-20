@@ -674,10 +674,21 @@
         </svg>
     </button>
 
-    <!-- Puntos de navegación debajo de los cards (clic en un punto = vista estática hasta usar flechas) -->
+    <!-- Puntos de navegación debajo de los cards con badges textuales al hacer hover -->
     <div id="carouselControlsBar" style="display: none;" class="w-full max-w-[1560px] mx-auto pt-2 flex-col items-center justify-center gap-2 select-none shrink-0">
-        <div id="carouselIndicators" class="flex flex-wrap items-center justify-center gap-2.5"></div>
+        <div id="carouselIndicators" class="flex flex-wrap items-center justify-center gap-3"></div>
     </div>
+
+    <!-- Botón discreto Play / Pausa en esquina inferior derecha -->
+    <button type="button"
+            id="carouselPlayPauseBtn"
+            onclick="toggleCarouselPlayPause()"
+            style="display: none;"
+            title="Activar transición automática"
+            class="fixed bottom-14 right-5 z-40 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#16050c]/85 hover:bg-[#2a0916] border border-amber-500/40 hover:border-amber-300 text-amber-200 text-xs font-bold uppercase tracking-wider shadow-[0_6px_20px_rgba(0,0,0,0.75)] backdrop-blur-md opacity-75 hover:opacity-100 transition-all cursor-pointer select-none">
+        <span>▶</span>
+        <span>Play</span>
+    </button>
 
     <!-- ============================================================== -->
     <!-- SCRIPTS DE ACTUALIZACIÓN EN VIVO (WEBSOCKETS Y ANIMACIÓN FLIP) -->
@@ -1314,8 +1325,24 @@
             const TICK_MS = 100;
 
             let slideActual = 0;
-            let pausado = false;
+            let pausado = true;
             let elapsedMs = 0;
+
+            function actualizarBotonPlayPause() {
+                const btn = document.getElementById('carouselPlayPauseBtn');
+                if (!btn) return;
+                if (pausado) {
+                    btn.innerHTML = '<span>▶</span><span>Play</span>';
+                    btn.title = 'Activar transición automática';
+                    btn.classList.remove('border-emerald-400/60', 'text-emerald-200');
+                    btn.classList.add('border-amber-500/40', 'text-amber-200');
+                } else {
+                    btn.innerHTML = '<span>⏸</span><span>Pausa</span>';
+                    btn.title = 'Pausar transición automática';
+                    btn.classList.remove('border-amber-500/40', 'text-amber-200');
+                    btn.classList.add('border-emerald-400/60', 'text-emerald-200');
+                }
+            }
 
             function obtenerCards() {
                 const grid = document.querySelector('[data-purpose="desktop-showcase-grid"]');
@@ -1335,11 +1362,33 @@
                     const inicio = i * SLIDE_SIZE + 1;
                     const fin = Math.min((i + 1) * SLIDE_SIZE, totalCards);
                     const activo = (slideActual === i);
-                    html += `<button type="button" onclick="seleccionarPuntoCarrousel(${i})" title="Ver participantes ${inicio}–${fin} (fijar vista)" aria-label="Participantes ${inicio} a ${fin}" class="rounded-full transition-all duration-300 cursor-pointer ${activo ? 'w-8 h-3 bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.7)]' : 'w-3 h-3 bg-amber-200/30 hover:bg-amber-300/70'}"></button>`;
+                    const etiqueta = `${inicio}–${fin}`;
+                    html += `
+                        <button type="button"
+                                onclick="seleccionarPuntoCarrousel(${i})"
+                                title="Participantes ${etiqueta}"
+                                aria-label="Participantes ${inicio} a ${fin}"
+                                class="group relative inline-flex items-center justify-center py-1 cursor-pointer focus:outline-none">
+                            <span class="pointer-events-none absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md bg-[#16050c]/95 border border-amber-400/50 text-amber-200 text-[10px] font-bold tracking-wider whitespace-nowrap shadow-lg opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-150">
+                                ${etiqueta}
+                            </span>
+                            <span class="block rounded-full transition-all duration-300 ${activo ? 'w-8 h-3 bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.7)]' : 'w-3 h-3 bg-amber-200/35 group-hover:bg-amber-300/80'}"></span>
+                        </button>`;
                 }
 
                 const esTodos = (slideActual === totalChunks);
-                html += `<button type="button" onclick="seleccionarPuntoCarrousel(${totalChunks})" title="Ver todos (${totalCards}) (fijar vista)" aria-label="Ver todos los participantes" class="rounded-full transition-all duration-300 cursor-pointer border ${esTodos ? 'w-8 h-3 bg-amber-400 border-amber-200 shadow-[0_0_12px_rgba(251,191,36,0.7)]' : 'w-3 h-3 bg-[#2a0916] border-amber-400/60 hover:bg-amber-400/50'}"></button>`;
+                const etiquetaTodos = `Todos (${totalCards})`;
+                html += `
+                    <button type="button"
+                            onclick="seleccionarPuntoCarrousel(${totalChunks})"
+                            title="${etiquetaTodos}"
+                            aria-label="Ver todos los participantes"
+                            class="group relative inline-flex items-center justify-center py-1 cursor-pointer focus:outline-none">
+                        <span class="pointer-events-none absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md bg-[#16050c]/95 border border-amber-400/50 text-amber-200 text-[10px] font-bold tracking-wider whitespace-nowrap shadow-lg opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-150">
+                            ${etiquetaTodos}
+                        </span>
+                        <span class="block rounded-full transition-all duration-300 border ${esTodos ? 'w-8 h-3 bg-amber-400 border-amber-200 shadow-[0_0_12px_rgba(251,191,36,0.7)]' : 'w-3 h-3 bg-[#2a0916] border-amber-400/60 group-hover:bg-amber-400/50'}"></span>
+                    </button>`;
 
                 cont.innerHTML = html;
             }
@@ -1349,11 +1398,13 @@
                 const bar = document.getElementById('carouselControlsBar');
                 const btnPrev = document.getElementById('carouselBtnPrev');
                 const btnNext = document.getElementById('carouselBtnNext');
+                const btnPlay = document.getElementById('carouselPlayPauseBtn');
 
                 if (!grid || cards.length === 0) {
                     if (bar) bar.style.display = 'none';
                     if (btnPrev) btnPrev.style.display = 'none';
                     if (btnNext) btnNext.style.display = 'none';
+                    if (btnPlay) btnPlay.style.display = 'none';
                     return;
                 }
 
@@ -1366,12 +1417,15 @@
                     if (bar) bar.style.display = 'none';
                     if (btnPrev) btnPrev.style.display = 'none';
                     if (btnNext) btnNext.style.display = 'none';
+                    if (btnPlay) btnPlay.style.display = 'none';
                     return;
                 }
 
                 if (bar) bar.style.display = 'flex';
                 if (btnPrev) btnPrev.style.display = 'flex';
                 if (btnNext) btnNext.style.display = 'flex';
+                if (btnPlay) btnPlay.style.display = 'inline-flex';
+                actualizarBotonPlayPause();
 
                 const totalChunks = Math.ceil(cards.length / SLIDE_SIZE);
                 const totalSlides = totalChunks + 1;
@@ -1414,36 +1468,43 @@
             window.irASlideCarrousel = function (idx) {
                 slideActual = idx;
                 elapsedMs = 0;
-                window.actualizarCarrouselPublico(true);
+                window.actualizarCarrouselPublico(!pausado);
             };
 
-            // Clic en un punto: muestra ese bloque con transición y deja la vista estática hasta usar flechas
+            // Clic en un punto: cambia a ese bloque y mantiene la vista estática
             window.seleccionarPuntoCarrousel = function (idx) {
                 pausado = true;
                 slideActual = idx;
                 elapsedMs = 0;
-                window.actualizarCarrouselPublico(true);
+                window.actualizarCarrouselPublico(false);
             };
 
-            // Clic en flechas Atrás / Siguiente: cambia de bloque y reanuda la rotación automática
+            // Clic en flechas Atrás / Siguiente: control manual respetando el estado Play/Pausa
             window.anteriorSlideCarrousel = function () {
                 const { cards } = obtenerCards();
                 if (cards.length <= SLIDE_SIZE) return;
-                pausado = false;
                 const totalSlides = Math.ceil(cards.length / SLIDE_SIZE) + 1;
                 slideActual = (slideActual - 1 + totalSlides) % totalSlides;
                 elapsedMs = 0;
-                window.actualizarCarrouselPublico(true);
+                window.actualizarCarrouselPublico(!pausado);
             };
 
             window.siguienteSlideCarrousel = function () {
                 const { cards } = obtenerCards();
                 if (cards.length <= SLIDE_SIZE) return;
-                pausado = false;
                 const totalSlides = Math.ceil(cards.length / SLIDE_SIZE) + 1;
                 slideActual = (slideActual + 1) % totalSlides;
                 elapsedMs = 0;
-                window.actualizarCarrouselPublico(true);
+                window.actualizarCarrouselPublico(!pausado);
+            };
+
+            window.toggleCarouselPlayPause = function () {
+                pausado = !pausado;
+                elapsedMs = 0;
+                actualizarBotonPlayPause();
+                if (!pausado) {
+                    window.actualizarCarrouselPublico(true);
+                }
             };
 
             function hayModalAbierto() {
@@ -1465,9 +1526,9 @@
             }, TICK_MS);
 
             if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', () => window.actualizarCarrouselPublico(true));
+                document.addEventListener('DOMContentLoaded', () => window.actualizarCarrouselPublico(false));
             } else {
-                window.actualizarCarrouselPublico(true);
+                window.actualizarCarrouselPublico(false);
             }
         })();
     </script>
