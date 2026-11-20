@@ -12,7 +12,7 @@
         <div class="w-full pt-0.5 pb-1.5 select-none">
             <div class="flex flex-col sm:flex-row sm:items-center {{ ($esPodio && $ranking->isNotEmpty()) ? 'justify-between' : 'justify-center' }} gap-2 px-1 mb-1.5">
                 @if ($esPodio && $ranking->isNotEmpty())
-                    <h2 class="text-lg sm:text-xl md:text-2xl font-black uppercase tracking-[0.15em] font-cinzel gold-gradient-text whitespace-nowrap" style="color: #d4af37; text-shadow: 0 0 15px rgba(212,175,55,0.6);">
+                    <h2 class="text-[22px] sm:text-[26px] md:text-[30px] leading-tight font-black uppercase tracking-[0.15em] font-cinzel gold-gradient-text whitespace-nowrap" style="color: #d4af37; text-shadow: 0 0 15px rgba(212,175,55,0.6);">
                         @if ($categoriaSeleccionada?->tieneUnSoloGanador())
                             {{ $categoriaSeleccionada->esNusta() ? 'Elección y Proclamación de la Ñusta' : 'Ganador Oficial de la Categoría' }}
                         @else
@@ -21,7 +21,7 @@
                     </h2>
                 @endif
 
-                <h2 class="text-lg sm:text-xl md:text-2xl font-black uppercase tracking-[0.15em] font-cinzel gold-gradient-text {{ ($esPodio && $ranking->isNotEmpty()) ? 'sm:text-right' : 'text-center' }}" style="color: #d4af37; text-shadow: 0 0 15px rgba(212,175,55,0.6);">
+                <h2 class="text-[22px] sm:text-[26px] md:text-[30px] leading-tight font-black uppercase tracking-[0.15em] font-cinzel gold-gradient-text {{ ($esPodio && $ranking->isNotEmpty()) ? 'sm:text-right' : 'text-center' }}" style="color: #d4af37; text-shadow: 0 0 15px rgba(212,175,55,0.6);">
                     {{ $categoriaSeleccionada ? $categoriaSeleccionada->categoria : 'Etapa Final Oruro 2026' }}
                 </h2>
             </div>
