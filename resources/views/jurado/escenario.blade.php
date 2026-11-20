@@ -70,7 +70,9 @@
           data-cronometro-finalizado-at-ms="{{ $cronometro['cronometro_finalizado_at_ms'] ?? $presentacion?->cronometro_finalizado_at?->valueOf() ?? '' }}"
           data-server-now-ms="{{ $cronometro['server_now_ms'] ?? (int) (microtime(true) * 1000) }}"
           data-segundos-restantes="{{ $cronometro['segundos_restantes'] ?? (($presentacion->tiempo_maximo ?? 10) * 60) }}"
-          data-tiempo-maximo="{{ $presentacion->tiempo_maximo ?? 10 }}">
+          data-tiempo-maximo="{{ $presentacion->tiempo_maximo ?? 10 }}"
+          data-descalificado="{{ ($presentacion?->estaDescalificado() ?? false) ? '1' : '0' }}"
+          data-url-excedido="{{ $presentacion ? route('presentaciones.cronometro.excedido', $presentacion) : '' }}">
 
         <!-- Barra Superior Gala -->
         <header class="px-4 py-2 border-b border-slate-800/80 bg-slate-950/70 backdrop-blur-md flex items-center justify-between shrink-0">
@@ -193,6 +195,8 @@
                                                 <span>Iniciar cronómetro</span>
                                             </button>
                                         </form>
+                                    @elseif ($presentacion->estaDescalificado())
+                                        <span data-control-estado-texto class="px-3 py-1.5 rounded-xl bg-rose-950/80 border border-rose-500/50 text-xs text-rose-300 font-bold uppercase tracking-wider">Descalificado</span>
                                     @else
                                         <span data-control-estado-texto class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-400 font-semibold">Cronómetro finalizado</span>
                                     @endif
@@ -267,7 +271,15 @@
                             @if ($juradoPresentacion)
                                 {{-- Jurado Asignado --}}
 
-                                @if ($calificacion && $calificacion->esEmitida())
+                                @if ($presentacion->estaDescalificado())
+                                    <div data-aviso-descalificado class="bg-rose-950/60 rounded-2xl border-2 border-rose-500/70 p-6 text-center space-y-3 shadow-xl">
+                                        <span class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-rose-500/20 border border-rose-400/50 text-rose-300 text-2xl font-black">✕</span>
+                                        <h3 class="text-base sm:text-lg font-black uppercase tracking-wider text-rose-200 font-cinzel">Participante Descalificado</h3>
+                                        <p class="text-xs sm:text-sm text-rose-100/90 leading-relaxed">
+                                            {{ $presentacion->motivo_descalificacion ?: 'Excedió el tiempo máximo de presentación establecido en la convocatoria. No se permite registrar ni corregir calificaciones.' }}
+                                        </p>
+                                    </div>
+                                @elseif ($calificacion && $calificacion->esEmitida())
                                     <!-- Caso: Calificación ya emitida -->
                                     <div class="bg-slate-900/80 rounded-2xl border border-slate-800 p-5 sm:p-6 space-y-4 shadow-xl">
                                         <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -322,6 +334,14 @@
                                     </div>
 
                                 @else
+                                    <!-- Aviso dinámico si excede el tiempo durante la presentación -->
+                                    <div data-aviso-descalificado class="hidden bg-rose-950/60 rounded-2xl border-2 border-rose-500/70 p-5 text-center space-y-2 shadow-xl mb-3">
+                                        <h3 class="text-sm sm:text-base font-black uppercase tracking-wider text-rose-200 font-cinzel">Participante Descalificado</h3>
+                                        <p class="text-xs text-rose-100/90">
+                                            Excedió el tiempo máximo de presentación. Las calificaciones quedan bloqueadas según la convocatoria.
+                                        </p>
+                                    </div>
+
                                     <!-- Caso: Formulario de Calificación Activo (Desfijado, tamaño natural) -->
                                     <div class="bg-slate-900/90 rounded-2xl border border-slate-800 p-4 sm:p-5 shadow-xl space-y-3">
                                         

@@ -27,6 +27,8 @@ class Presentacion extends Model
         'cronometro_iniciado_at',
         'cronometro_finalizado_at',
         'nota_final',
+        'descalificado',
+        'motivo_descalificacion',
     ];
 
     protected function casts(): array
@@ -39,6 +41,7 @@ class Presentacion extends Model
             'cronometro_iniciado_at' => 'datetime',
             'cronometro_finalizado_at' => 'datetime',
             'nota_final' => 'decimal:2',
+            'descalificado' => 'boolean',
         ];
     }
 
@@ -126,6 +129,28 @@ class Presentacion extends Model
     public function esPreseleccion(): bool
     {
         return $this->inscripcion?->esPreseleccion() ?? false;
+    }
+
+    /**
+     * Indica si el tiempo transcurrido del cronómetro superó el tiempo máximo permitido.
+     */
+    public function excedioTiempoLimite(): bool
+    {
+        if ($this->cronometro_iniciado_at === null || ($this->tiempo_maximo ?? 0) <= 0) {
+            return false;
+        }
+
+        $fin = $this->cronometro_finalizado_at ?? now();
+
+        return $this->cronometro_iniciado_at->diffInSeconds($fin) > ($this->tiempo_maximo * 60);
+    }
+
+    /**
+     * Indica si la presentación está descalificada (explícitamente o por exceder el tiempo).
+     */
+    public function estaDescalificado(): bool
+    {
+        return (bool) $this->descalificado || $this->excedioTiempoLimite();
     }
 
     public function esFinal(): bool

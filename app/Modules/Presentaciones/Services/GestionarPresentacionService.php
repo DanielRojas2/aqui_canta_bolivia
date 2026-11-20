@@ -27,6 +27,8 @@ class GestionarPresentacionService
             'hora_inicio' => now()->format('H:i'),
             'cronometro_iniciado_at' => null,
             'cronometro_finalizado_at' => null,
+            'descalificado' => false,
+            'motivo_descalificacion' => null,
         ])->save();
 
         $this->emitirEvento($presentacion);
@@ -61,13 +63,21 @@ class GestionarPresentacionService
     {
         $this->validarTransicion($presentacion, PresentacionEstadoEnum::FINALIZADO);
 
-        $presentacion->forceFill([
-            'estado' => PresentacionEstadoEnum::FINALIZADO,
-            'hora_fin' => now()->format('H:i'),
-            'cronometro_finalizado_at' => $presentacion->cronometroCorriendo()
-                ? now()
-                : $presentacion->cronometro_finalizado_at,
-        ])->save();
+        $fin = $presentacion->cronometroCorriendo()
+            ? now()
+            : $presentacion->cronometro_finalizado_at;
+
+        $presentacion->estado = PresentacionEstadoEnum::FINALIZADO;
+        $presentacion->hora_fin = now()->format('H:i');
+        $presentacion->cronometro_finalizado_at = $fin;
+
+        if ($presentacion->excedioTiempoLimite()) {
+            $presentacion->descalificado = true;
+            $presentacion->motivo_descalificacion = $presentacion->motivo_descalificacion ?: 'Excedió el tiempo máximo de presentación.';
+            $presentacion->nota_final = null;
+        }
+
+        $presentacion->save();
 
         $this->emitirEvento($presentacion);
         $this->cronometro->emitirEvento($presentacion);

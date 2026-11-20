@@ -44,6 +44,10 @@ class CorregirCalificacionService
             throw new DomainException('La presentación asociada no existe.');
         }
 
+        if ($presentacion->estaDescalificado()) {
+            throw new DomainException('El participante fue descalificado por exceder el tiempo máximo de presentación. No se permite corregir la calificación.');
+        }
+
         // 2. Solo se permite corregir cuando la presentación está en FINALIZADO
         if ($presentacion->estado !== PresentacionEstadoEnum::FINALIZADO) {
             throw new DomainException('Solo es posible corregir una calificación cuando la presentación ha finalizado.');

@@ -60,6 +60,8 @@ class PresentacionEstadoCambiado implements ShouldBroadcastNow
             'corriendo' => $cronometro['corriendo'],
             'segundos_transcurridos' => $cronometro['segundos_transcurridos'],
             'segundos_restantes' => $cronometro['segundos_restantes'],
+            'descalificado' => $this->presentacion->estaDescalificado(),
+            'motivo_descalificacion' => $this->presentacion->motivo_descalificacion,
         ];
     }
 }

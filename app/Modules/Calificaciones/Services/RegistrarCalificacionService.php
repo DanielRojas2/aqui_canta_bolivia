@@ -39,6 +39,10 @@ class RegistrarCalificacionService
             throw new DomainException('La presentación asignada no existe.');
         }
 
+        if ($presentacion->estaDescalificado()) {
+            throw new DomainException('El participante fue descalificado por exceder el tiempo máximo de presentación. No se permite calificar.');
+        }
+
         // 2. Validar estado de la presentación (debe estar PARTICIPANDO o FINALIZADO)
         $estadosPermitidos = [
             PresentacionEstadoEnum::PARTICIPANDO,

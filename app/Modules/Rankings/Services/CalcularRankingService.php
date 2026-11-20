@@ -57,9 +57,12 @@ class CalcularRankingService
             $catRevelada = $catPresentacion ? $catPresentacion->estaRevelada() : $estaRevelada;
             $catFinalizada = (bool) ($catPresentacion?->finalizada ?? false);
 
-            // Si es público y la categoría aún NO está revelada/finalizada,
-            // la nota en puntaje final no contempla la nota del jurado secreto
-            if ($esPublico && ! $catRevelada && $presentacion->jurados->contains('es_secreto', true)) {
+            $descalificado = $presentacion->estaDescalificado();
+
+            // Si está descalificado (ej. exceso de tiempo), nunca tiene nota_final ni entra al podio
+            if ($descalificado) {
+                $notaFinal = null;
+            } elseif ($esPublico && ! $catRevelada && $presentacion->jurados->contains('es_secreto', true)) {
                 $juradosVisibles = $presentacion->jurados->filter(function (JuradoPresentacion $jp) {
                     if ((bool) $jp->es_secreto) {
                         return false;
@@ -120,6 +123,7 @@ class CalcularRankingService
                 'estado' => $presentacion->estado?->value,
                 'estado_label' => $presentacion->estado?->label(),
                 'nota_final' => $notaFinal,
+                'descalificado' => $descalificado,
                 'categoria_finalizada' => $catFinalizada,
                 'categoria_revelada' => $catRevelada,
                 'tiene_jurado_secreto' => $tieneJuradoSecreto,

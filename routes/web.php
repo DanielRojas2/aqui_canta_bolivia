@@ -57,6 +57,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', sprintf(
         Route::get('/', [PresentacionController::class, 'index'])->name('index');
         Route::get('/escenario', [PresentacionController::class, 'escenario'])->name('escenario');
         Route::post('/{presentacion}/transicion', [PresentacionController::class, 'transicion'])->name('transicion');
+        Route::post('/{presentacion}/cronometro/reiniciar', [PresentacionController::class, 'cronometroReiniciar'])->name('cronometro.reiniciar');
     });
 
     Route::prefix('jurados')->name('jurados.')->group(function () {
@@ -116,6 +117,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('presentaciones.cronometro.iniciar');
     Route::post('/presentaciones/{presentacion}/cronometro/detener', [PresentacionController::class, 'cronometroDetener'])
         ->name('presentaciones.cronometro.detener');
+    Route::post('/presentaciones/{presentacion}/cronometro/excedido', [PresentacionController::class, 'cronometroExcedido'])
+        ->name('presentaciones.cronometro.excedido');
 
     // Mesa de Jurados / Delegado de Mesa
     Route::prefix('mesa')->name('mesa.')->group(function () {

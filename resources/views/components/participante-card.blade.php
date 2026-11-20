@@ -6,6 +6,7 @@
     'banderaUrl' => null,
     'fotoUrl' => null,
     'notaFinal' => null,
+    'descalificado' => false,
     'juradosCalificados' => 0,
     'juradosTotal' => 5,
     'juradosLista' => [],
@@ -16,7 +17,9 @@
     $bandera = $banderaUrl ?? \App\Modules\Departamentos\Models\Departamento::urlBanderaPorNombre($departamento);
     $foto = $fotoUrl ?: asset('images/fondo.png');
 
-    if ($notaFinal === null || $notaFinal === '' || $notaFinal === false) {
+    if ($descalificado) {
+        $notaTexto = 'DESC';
+    } elseif ($notaFinal === null || $notaFinal === '' || $notaFinal === false) {
         $notaTexto = 'N/C';
     } else {
         $val = (float) $notaFinal;

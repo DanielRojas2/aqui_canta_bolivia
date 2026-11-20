@@ -3,6 +3,7 @@
 namespace App\Modules\Presentaciones\Services;
 
 use App\Modules\Presentaciones\Events\CronometroActualizado;
+use App\Modules\Presentaciones\Events\PresentacionEstadoCambiado;
 use App\Modules\Presentaciones\Models\Presentacion;
 use App\Support\Enums\PresentacionEstadoEnum;
 
@@ -38,9 +39,16 @@ class GestionarCronometroService
             throw new \UnexpectedValueException('El cronómetro de esta presentación no está en curso.');
         }
 
-        $presentacion->forceFill([
-            'cronometro_finalizado_at' => now(),
-        ])->save();
+        $ahora = now();
+        $presentacion->cronometro_finalizado_at = $ahora;
+
+        if ($presentacion->excedioTiempoLimite()) {
+            $presentacion->descalificado = true;
+            $presentacion->motivo_descalificacion = 'Excedió el tiempo máximo de presentación.';
+            $presentacion->nota_final = null;
+        }
+
+        $presentacion->save();
 
         $this->emitirEvento($presentacion);
 
@@ -48,16 +56,60 @@ class GestionarCronometroService
     }
 
     /**
-     * Reinicia el cronómetro (se usa al pasar a una nueva presentación).
+     * Marca la presentación como descalificada si excedió el tiempo máximo permitido.
      */
-    public function reiniciar(Presentacion $presentacion): Presentacion
+    public function descalificarPorTiempo(Presentacion $presentacion): Presentacion
     {
+        if (! $presentacion->estaDescalificado()) {
+            throw new \UnexpectedValueException('La presentación aún no excedió el tiempo máximo permitido.');
+        }
+
         $presentacion->forceFill([
-            'cronometro_iniciado_at' => null,
-            'cronometro_finalizado_at' => null,
+            'descalificado' => true,
+            'motivo_descalificacion' => $presentacion->motivo_descalificacion ?: 'Excedió el tiempo máximo de presentación.',
+            'cronometro_finalizado_at' => $presentacion->cronometro_finalizado_at ?? now(),
+            'estado' => PresentacionEstadoEnum::FINALIZADO,
+            'hora_fin' => $presentacion->hora_fin ?? now()->format('H:i'),
+            'nota_final' => null,
         ])->save();
 
         $this->emitirEvento($presentacion);
+
+        try {
+            event(new PresentacionEstadoCambiado($presentacion));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('No se pudo transmitir evento WebSocket de descalificación: '.$e->getMessage());
+        }
+
+        return $presentacion;
+    }
+
+    /**
+     * Reinicia el cronómetro por falla técnica o decisión administrativa y vuelve a EN_ESCENARIO.
+     */
+    public function reiniciar(Presentacion $presentacion): Presentacion
+    {
+        $datos = [
+            'cronometro_iniciado_at' => null,
+            'cronometro_finalizado_at' => null,
+            'descalificado' => false,
+            'motivo_descalificacion' => null,
+        ];
+
+        if (in_array($presentacion->estado, [PresentacionEstadoEnum::PARTICIPANDO, PresentacionEstadoEnum::FINALIZADO], true)) {
+            $datos['estado'] = PresentacionEstadoEnum::EN_ESCENARIO;
+            $datos['hora_fin'] = null;
+        }
+
+        $presentacion->forceFill($datos)->save();
+
+        $this->emitirEvento($presentacion);
+
+        try {
+            event(new PresentacionEstadoCambiado($presentacion));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('No se pudo transmitir evento WebSocket de reinicio: '.$e->getMessage());
+        }
 
         return $presentacion;
     }
@@ -109,6 +161,8 @@ class GestionarCronometroService
             'server_now_ms' => (int) (microtime(true) * 1000),
             'segundos_transcurridos' => $segundosTranscurridos,
             'segundos_restantes' => max(0, $totalSegundos - $segundosTranscurridos),
+            'excedio_tiempo' => $presentacion->excedioTiempoLimite(),
+            'descalificado' => $presentacion->estaDescalificado(),
         ];
     }
 

@@ -68,6 +68,10 @@ class CalcularNotaService
      */
     public function calcularNotaFinalPresentacion(Presentacion $presentacion): ?float
     {
+        if ($presentacion->estaDescalificado()) {
+            return null;
+        }
+
         // Cargar los jurados con sus calificaciones emitidas/corregidas
         $calificaciones = $presentacion->jurados()
             ->whereHas('calificacion', function ($query) {

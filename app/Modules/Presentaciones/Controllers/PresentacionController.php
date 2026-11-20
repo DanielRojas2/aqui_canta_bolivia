@@ -219,6 +219,44 @@ class PresentacionController
         return back()->with('status', 'Cronómetro detenido.');
     }
 
+    public function cronometroExcedido(Request $request, Presentacion $presentacion): RedirectResponse|JsonResponse
+    {
+        Gate::authorize('controlarCronometro', $presentacion);
+
+        try {
+            $presentacion = $this->cronometro->descalificarPorTiempo($presentacion);
+        } catch (\UnexpectedValueException $e) {
+            if ($request->wantsJson()) {
+                return response()->json(['error' => $e->getMessage()], 422);
+            }
+
+            return back()->with('error', $e->getMessage());
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'cronometro' => $this->cronometro->obtenerEstado($presentacion),
+                'estado' => $presentacion->estado?->value,
+                'estado_label' => $presentacion->estado?->label(),
+                'descalificado' => $presentacion->estaDescalificado(),
+            ]);
+        }
+
+        return back()->with('status', 'Participante descalificado por exceder el tiempo de presentación.');
+    }
+
+    public function cronometroReiniciar(Presentacion $presentacion): RedirectResponse
+    {
+        if ($presentacion->inscripcion?->categoria?->estaFinalizada()) {
+            return back()->with('error', 'No se puede reiniciar el cronómetro porque la categoría ya fue cerrada.');
+        }
+
+        $this->cronometro->reiniciar($presentacion);
+
+        return back()->with('status', sprintf('Cronómetro reiniciado para "%s".', $presentacion->nombreMostrado()));
+    }
+
     /**
      * @return array{0: Presentacion|null, 1: Presentacion|null}
      */

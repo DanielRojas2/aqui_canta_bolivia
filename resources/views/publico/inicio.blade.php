@@ -575,6 +575,7 @@
                             :banderaUrl="$bandera"
                             :fotoUrl="$foto"
                             :notaFinal="$item['nota_final']"
+                            :descalificado="$item['descalificado'] ?? false"
                             :juradosCalificados="$item['jurados_calificados_count'] ?? 0"
                             :juradosTotal="$item['jurados_total_count'] ?? 5"
                             :juradosLista="$item['jurados'] ?? []"

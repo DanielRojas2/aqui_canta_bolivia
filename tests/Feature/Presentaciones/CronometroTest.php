@@ -190,4 +190,101 @@ class CronometroTest extends TestCase
         $this->assertFalse($respuestaDetener->json('cronometro.corriendo'));
         $this->assertNotNull($respuestaDetener->json('cronometro.cronometro_finalizado_at_ms'));
     }
+
+    #[Test]
+    public function participante_que_excede_el_tiempo_queda_descalificado_y_no_puede_calificarse(): void
+    {
+        $admin = Usuario::factory()->administrador()->create(['puede_controlar_tiempo' => true]);
+        $jurado = Usuario::factory()->create(['rol' => RolEnum::JURADO]);
+        $presentacion = $this->presentacionPreseleccion();
+
+        $jp = JuradoPresentacion::create([
+            'id_presentacion' => $presentacion->id,
+            'id_usuario' => $jurado->id,
+        ]);
+
+        // Simular presentación iniciada hace más minutos que su tiempo_maximo
+        $presentacion->forceFill([
+            'estado' => PresentacionEstadoEnum::PARTICIPANDO,
+            'tiempo_maximo' => 5,
+            'cronometro_iniciado_at' => now()->subMinutes(6),
+            'cronometro_finalizado_at' => null,
+        ])->save();
+
+        // Al reportar exceso de tiempo, queda descalificado y finalizado
+        $this->actingAs($admin)
+            ->postJson(route('presentaciones.cronometro.excedido', $presentacion))
+            ->assertOk()
+            ->assertJson([
+                'success' => true,
+                'descalificado' => true,
+            ]);
+
+        $presentacion->refresh();
+        $this->assertTrue($presentacion->descalificado);
+        $this->assertNull($presentacion->nota_final);
+        $this->assertSame(PresentacionEstadoEnum::FINALIZADO, $presentacion->estado);
+
+        // Intentar calificar debe ser bloqueado por DomainException
+        $valores = [];
+        foreach ($presentacion->inscripcion->categoria->categoriaParametros as $cp) {
+            $valores[$cp->id_parametro] = $cp->valor_maximo;
+        }
+
+        $this->expectException(\DomainException::class);
+        app(\App\Modules\Calificaciones\Services\RegistrarCalificacionService::class)
+            ->registrar($jp, $valores, $jurado);
+    }
+
+    #[Test]
+    public function no_descalifica_si_aun_no_excede_el_tiempo_maximo(): void
+    {
+        $admin = Usuario::factory()->administrador()->create(['puede_controlar_tiempo' => true]);
+        $presentacion = $this->presentacionPreseleccion();
+
+        $presentacion->forceFill([
+            'estado' => PresentacionEstadoEnum::PARTICIPANDO,
+            'tiempo_maximo' => 5,
+            'cronometro_iniciado_at' => now()->subMinutes(2),
+            'cronometro_finalizado_at' => null,
+        ])->save();
+
+        $this->actingAs($admin)
+            ->postJson(route('presentaciones.cronometro.excedido', $presentacion))
+            ->assertStatus(422);
+
+        $this->assertFalse($presentacion->fresh()->descalificado);
+    }
+
+    #[Test]
+    public function admin_puede_reiniciar_cronometro_por_falla_tecnica_y_jurado_no(): void
+    {
+        $admin = Usuario::factory()->administrador()->create();
+        $jurado = Usuario::factory()->create(['rol' => RolEnum::JURADO]);
+        $presentacion = $this->presentacionPreseleccion();
+
+        $presentacion->forceFill([
+            'estado' => PresentacionEstadoEnum::FINALIZADO,
+            'cronometro_iniciado_at' => now()->subMinutes(6),
+            'cronometro_finalizado_at' => now(),
+            'descalificado' => true,
+            'motivo_descalificacion' => 'Excedió el tiempo máximo de presentación.',
+        ])->save();
+
+        // Un jurado no tiene acceso a la ruta administrativa de reinicio
+        $this->actingAs($jurado)
+            ->post(route('admin.presentaciones.cronometro.reiniciar', $presentacion))
+            ->assertForbidden();
+
+        // El administrador reinicia el cronómetro y vuelve a EN_ESCENARIO
+        $this->actingAs($admin)
+            ->post(route('admin.presentaciones.cronometro.reiniciar', $presentacion))
+            ->assertRedirect();
+
+        $presentacion->refresh();
+        $this->assertSame(PresentacionEstadoEnum::EN_ESCENARIO, $presentacion->estado);
+        $this->assertNull($presentacion->cronometro_iniciado_at);
+        $this->assertNull($presentacion->cronometro_finalizado_at);
+        $this->assertFalse($presentacion->descalificado);
+    }
 }

@@ -73,7 +73,7 @@
             </button>
         </form>
 
-        <div class="overflow-x-auto">
+        <div id="adminPresentacionesWrapper" class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="text-left text-xs uppercase tracking-wider text-slate-500 border-b border-slate-200">
@@ -121,9 +121,18 @@
                                 ])>
                                     {{ $presentacion->estado?->label() ?? '—' }}
                                 </span>
+                                @if ($presentacion->estaDescalificado())
+                                    <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-rose-100 text-rose-700 border border-rose-300 ml-1">
+                                        Descalificado
+                                    </span>
+                                @endif
                             </td>
                             <td class="py-2 pr-4">
-                                <span class="font-mono text-slate-600 tabular-nums">
+                                <span class="font-mono text-slate-600 tabular-nums {{ $presentacion->cronometroCorriendo() ? 'text-emerald-700 font-bold' : '' }}"
+                                      data-admin-cronometro
+                                      data-cronometro-corriendo="{{ $presentacion->cronometroCorriendo() ? '1' : '0' }}"
+                                      data-cronometro-iniciado-at-ms="{{ $presentacion->cronometro_iniciado_at?->valueOf() ?? '' }}"
+                                      data-tiempo-maximo="{{ $presentacion->tiempo_maximo ?? 10 }}">
                                     {{ gmdate('i:s', $presentacion->segundosRestantes()) }}
                                 </span>
                                 <span class="text-xs text-slate-400">/ {{ $presentacion->tiempo_maximo }}:00</span>
@@ -167,6 +176,16 @@
                                     </form>
                                 @endif
 
+                                @if (($presentacion->cronometro_iniciado_at !== null || $presentacion->estaDescalificado()) && ! ($presentacion->inscripcion?->categoria?->estaFinalizada() ?? false))
+                                    <form method="POST"
+                                          action="{{ route('admin.presentaciones.cronometro.reiniciar', $presentacion) }}"
+                                          onsubmit="return confirm('¿Reiniciar el cronómetro por falla técnica? La presentación volverá a En escenario con el tiempo completo.');"
+                                          class="inline">
+                                        @csrf
+                                        <button type="submit" class="text-rose-600 hover:text-rose-800 font-medium ml-2">Reiniciar cronómetro</button>
+                                    </form>
+                                @endif
+
                                 <a href="{{ route('admin.calificaciones.presentacion', $presentacion) }}"
                                    class="text-slate-600 hover:text-slate-900 ml-2 font-medium"
                                    title="Ver evaluaciones de jurados">
@@ -187,4 +206,90 @@
             {{ $presentaciones->links() }}
         </div>
     </div>
+
+    @push('scripts')
+        <script>
+            (function () {
+                // 1. Ticker en vivo cada segundo para cronómetros en curso
+                function actualizarCronometrosTabla() {
+                    const ahora = Date.now();
+                    document.querySelectorAll('[data-admin-cronometro][data-cronometro-corriendo="1"]').forEach(el => {
+                        const iniciadoMs = parseInt(el.dataset.cronometroIniciadoAtMs || '0', 10);
+                        const maxMin = parseInt(el.dataset.tiempoMaximo || '10', 10);
+                        if (!iniciadoMs) return;
+
+                        const transcurrido = Math.max(0, Math.floor((ahora - iniciadoMs) / 1000));
+                        const restante = Math.max(0, (maxMin * 60) - transcurrido);
+                        const m = String(Math.floor(restante / 60)).padStart(2, '0');
+                        const s = String(restante % 60).padStart(2, '0');
+                        el.textContent = `${m}:${s}`;
+                    });
+                }
+
+                setInterval(actualizarCronometrosTabla, 1000);
+
+                // 2. Actualización automática vía WebSockets (cuando el jurado controla el cronómetro o cambia el estado)
+                let refrescoTimer = null;
+                let refrescando = false;
+
+                async function refrescarTablaPresentaciones() {
+                    if (refrescando) return;
+                    refrescando = true;
+                    try {
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('_t', Date.now());
+                        const res = await fetch(url.toString(), {
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                            cache: 'no-store',
+                        });
+                        if (res.ok) {
+                            const html = await res.text();
+                            const doc = new DOMParser().parseFromString(html, 'text/html');
+                            const nuevo = doc.getElementById('adminPresentacionesWrapper');
+                            const actual = document.getElementById('adminPresentacionesWrapper');
+                            if (nuevo && actual) {
+                                actual.innerHTML = nuevo.innerHTML;
+                                actualizarCronometrosTabla();
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Error actualizando tabla de presentaciones:', e);
+                    } finally {
+                        refrescando = false;
+                    }
+                }
+
+                function agendarRefresco() {
+                    if (refrescoTimer) clearTimeout(refrescoTimer);
+                    refrescoTimer = setTimeout(() => {
+                        refrescoTimer = null;
+                        refrescarTablaPresentaciones();
+                    }, 250);
+                }
+
+                let suscrito = false;
+                function suscribirEcho() {
+                    if (suscrito || !window.Echo) return suscrito;
+                    try {
+                        const ch = window.Echo.channel('presentaciones');
+                        ['.presentacion.estado.cambiado', '.cronometro.actualizado', '.calificacion.registrada'].forEach(ev => {
+                            ch.listen(ev, agendarRefresco);
+                        });
+                        suscrito = true;
+                        return true;
+                    } catch (e) {
+                        return false;
+                    }
+                }
+
+                if (!suscribirEcho()) {
+                    let intentos = 0;
+                    const t = setInterval(() => {
+                        intentos++;
+                        if (suscribirEcho() || intentos > 25) clearInterval(t);
+                    }, 300);
+                }
+            })();
+        </script>
+    @endpush
 </x-layouts.admin>

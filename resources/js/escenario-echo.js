@@ -28,6 +28,8 @@ export function inicializarEscenario() {
 
     let presentacionId = parseInt(raiz.dataset.escenarioId || raiz.dataset.escenarioEcho || '0', 10) || null;
     let corriendo = raiz.dataset.cronometroCorriendo === '1';
+    let descalificado = raiz.dataset.descalificado === '1';
+    let excedidoNotificado = false;
 
     // Sincronización precisa con el reloj del servidor (en milisegundos)
     // Permite que todos los dispositivos (jurado presidente, vocales y público)
@@ -151,6 +153,51 @@ export function inicializarEscenario() {
         }
     }
 
+    function activarModoDescalificado() {
+        descalificado = true;
+        corriendo = false;
+        segundosRestantes = 0;
+
+        if (displayEl) {
+            displayEl.textContent = '00:00';
+            displayEl.classList.remove('text-[#00ff88]');
+            displayEl.classList.add('text-rose-400');
+        }
+
+        if (progressEl) {
+            progressEl.style.width = '0%';
+        }
+
+        if (btnCalificar) {
+            btnCalificar.disabled = true;
+            btnCalificar.classList.remove('bg-gradient-to-r', 'from-[#5c0618]', 'to-rose-700', 'hover:from-[#720a20]', 'hover:to-rose-600', 'text-white', 'cursor-pointer', 'shadow-lg');
+            btnCalificar.classList.add('bg-rose-950/60', 'border', 'border-rose-500/50', 'text-rose-300', 'cursor-not-allowed', 'opacity-75');
+            if (btnCalificarTexto) {
+                btnCalificarTexto.textContent = 'Descalificado por exceso de tiempo';
+            }
+        }
+
+        const formCalif = document.getElementById('formCalificacion');
+        if (formCalif) {
+            formCalif.querySelectorAll('input, button').forEach(el => {
+                el.disabled = true;
+            });
+        }
+
+        const avisoDesc = document.querySelector('[data-aviso-descalificado]');
+        if (avisoDesc) {
+            avisoDesc.classList.remove('hidden');
+        }
+
+        const controlCaja = document.querySelector('[data-control-tiempo-caja]');
+        if (controlCaja) {
+            const targetElement = controlCaja.querySelector('form, [data-control-estado-texto]');
+            if (targetElement) {
+                targetElement.outerHTML = '<span data-control-estado-texto class="px-3 py-1.5 rounded-xl bg-rose-950/80 border border-rose-500/50 text-xs text-rose-300 font-bold uppercase tracking-wider">Descalificado</span>';
+            }
+        }
+    }
+
     function actualizarControlTiempoUI() {
         const controlCaja = document.querySelector('[data-control-tiempo-caja]');
         if (!controlCaja) return;
@@ -262,6 +309,11 @@ export function inicializarEscenario() {
 
         if (typeof datos.segundos_restantes === 'number') {
             segundosRestantes = datos.segundos_restantes;
+        }
+
+        if (datos.descalificado === true || datos.excedio_tiempo === true) {
+            activarModoDescalificado();
+            return;
         }
 
         // Si el cronómetro fue detenido o finalizado
@@ -398,7 +450,9 @@ export function inicializarEscenario() {
         }
 
         // Gestión del estado
-        if (datos.estado === 'FINALIZADO') {
+        if (datos.descalificado === true) {
+            activarModoDescalificado();
+        } else if (datos.estado === 'FINALIZADO') {
             mostrarModoFinalizado(datos.estado_label);
         } else if (datos.estado === 'PARTICIPANDO') {
             corriendo = true;
@@ -483,13 +537,35 @@ export function inicializarEscenario() {
     // Intervalo de renderizado y sincronización en alta frecuencia (100ms)
     // Calcula contra la marca de tiempo oficial del servidor para evitar desfases o retrasos acumulativos entre clientes
     window.setInterval(() => {
-        if (corriendo) {
+        if (corriendo && !descalificado) {
+            const totalSegundos = tiempoMaximo * 60;
+            const transcurridoSegundos = iniciadoAt ? Math.max(0, (obtenerHoraServidor() - iniciadoAt) / 1000) : 0;
+
+            if (iniciadoAt && transcurridoSegundos > totalSegundos) {
+                activarModoDescalificado();
+
+                const urlExcedido = raiz.dataset.urlExcedido;
+                const controlCaja = document.querySelector('[data-control-tiempo-caja]');
+                if (!excedidoNotificado && urlExcedido && controlCaja) {
+                    excedidoNotificado = true;
+                    const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+                    fetch(urlExcedido, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': csrf,
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                    }).catch(err => console.error('Error al reportar tiempo excedido:', err));
+                }
+                return;
+            }
+
             const nuevosSegundos = calcularSegundosRestantes();
             if (nuevosSegundos !== segundosRestantes) {
                 segundosRestantes = nuevosSegundos;
                 if (segundosRestantes <= 0) {
                     segundosRestantes = 0;
-                    mostrarModoFinalizado();
                 }
                 renderizar();
             }
