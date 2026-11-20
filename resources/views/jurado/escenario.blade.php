@@ -59,7 +59,7 @@
             }
         </style>
     </head>
-    <body class="font-sans antialiased min-h-screen bg-[#030712] text-white flex flex-col justify-between select-none"
+    <body class="font-sans antialiased min-h-screen lg:h-screen lg:overflow-hidden bg-[#030712] text-white flex flex-col justify-between select-none"
           data-escenario-raiz
           data-escenario-id="{{ $presentacion->id ?? '' }}"
           data-estado-actual="{{ $presentacion?->estado?->value ?? '' }}"
@@ -98,12 +98,12 @@
         </header>
 
         <!-- Contenedor Principal (2 Columnas) -->
-        <main class="flex-1 flex flex-col justify-start px-4 sm:px-6 pt-4 pb-3 overflow-y-auto min-h-0 custom-scrollbar">
+        <main class="flex-1 flex flex-col justify-center px-4 sm:px-6 py-2 overflow-y-auto lg:overflow-hidden min-h-0 custom-scrollbar">
             {{-- Presentación Activa --}}
-            <div data-escenario-activo class="{{ $presentacion !== null ? 'w-full max-w-7xl mx-auto flex flex-col justify-start min-h-0' : 'hidden w-full max-w-7xl mx-auto flex flex-col justify-start min-h-0' }}">
+            <div data-escenario-activo class="{{ $presentacion !== null ? 'w-full max-w-7xl mx-auto flex flex-col justify-center min-h-0' : 'hidden w-full max-w-7xl mx-auto flex flex-col justify-center min-h-0' }}">
                 
                 <!-- Barra Superior de Escenario: Información del Participante, Total de Puntaje y Control de Cronómetro -->
-                <div class="w-full flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-3 mb-2 border-b border-slate-800/60 shrink-0 px-2">
+                <div class="w-full flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 pb-2 mb-2 border-b border-slate-800/60 shrink-0 px-2">
                     <!-- Izquierda: Nombre del Participante + Categoría y Departamento -->
                     <div class="flex flex-col items-start min-w-0">
                         @php
@@ -207,15 +207,21 @@
                         <!-- Fotografía / Imagen Hero del Artista -->
                         @php
                             $fotoHero = $presentacion?->fotoJuradoUrl() ?: $presentacion?->fotoUrl();
+                            $fotoFallback = $presentacion?->fotoUrl();
                         @endphp
-                        <div class="relative my-1 sm:my-2 flex justify-center items-center w-full min-h-[260px] max-h-[56vh] sm:max-h-[60vh] lg:max-h-[64vh] shrink">
+                        <div class="relative my-1 sm:my-2 flex justify-center items-center w-full min-h-[220px] max-h-[46vh] sm:max-h-[48vh] lg:max-h-[50vh] shrink">
                             <!-- Resplandor sutil de fondo de escenario -->
                             <div class="absolute inset-0 max-w-md mx-auto rounded-full bg-amber-500/10 blur-3xl pointer-events-none"></div>
 
                             @if ($fotoHero)
                                 <img src="{{ $fotoHero }}"
                                      alt="{{ $presentacion?->nombreMostrado() }}"
-                                     class="relative z-10 max-h-[54vh] sm:max-h-[58vh] lg:max-h-[62vh] w-auto max-w-full object-contain filter drop-shadow-[0_20px_35px_rgba(0,0,0,0.95)] transition-transform duration-300">
+                                     loading="eager"
+                                     decoding="sync"
+                                     @if ($fotoFallback && $fotoFallback !== $fotoHero)
+                                         onerror="if(!this.dataset.fallbackUsed){this.dataset.fallbackUsed='1';this.src='{{ $fotoFallback }}';}"
+                                     @endif
+                                     class="relative z-10 max-h-[44vh] sm:max-h-[46vh] lg:max-h-[48vh] w-auto max-w-full object-contain filter drop-shadow-[0_20px_35px_rgba(0,0,0,0.95)] transition-transform duration-300">
                             @else
                                 <!-- Silueta o símbolo musical elegante si no hay foto cargada -->
                                 <div class="relative z-10 flex flex-col items-center justify-center p-6 rounded-3xl bg-slate-900/40 border border-slate-800/80 shadow-2xl backdrop-blur-sm">
@@ -446,6 +452,28 @@
                     </div>
 
                 </div>
+
+                @if (auth()->check() && auth()->user()->esJurado() && $juradosAsignados->isNotEmpty())
+                    <!-- Estados de calificación de jurados al 90% de ancho horizontal (sin contenedor agrupador) -->
+                    <div class="w-[90%] mx-auto flex flex-wrap items-center justify-center gap-2.5 pt-3 shrink-0">
+                        @foreach ($juradosAsignados as $jp)
+                            @php
+                                $califJp = $jp->calificacion;
+                                $haCalificadoJp = $califJp && $califJp->esEmitida();
+                            @endphp
+                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/70 border border-slate-800/90 text-xs"
+                                 data-jurado-usuario-id="{{ $jp->id_usuario }}">
+                                <span class="text-slate-200 font-medium">
+                                    {{ $jp->usuario?->nombreCompleto() ?? 'Jurado' }}
+                                </span>
+                                <span data-jurado-estado-badge
+                                      class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {{ $haCalificadoJp ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-amber-500/15 text-amber-300 border border-amber-500/35' }}">
+                                    {{ $haCalificadoJp ? 'Calificó' : 'Calificando' }}
+                                </span>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
             </div>
 
             {{-- Escenario Vacío --}}

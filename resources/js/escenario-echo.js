@@ -316,6 +316,12 @@ export function inicializarEscenario() {
 
         const nuevoId = parseInt(datos.presentacion_id, 10);
 
+        // Si la vista inició sin presentación activa y se acaba de llamar a un participante, recargar para cargar foto y formulario
+        if (!presentacionId && nuevoId) {
+            window.location.reload();
+            return;
+        }
+
         // Si cambió la presentación en el escenario, avisar al jurado para que verifique su nota
         // y recargar en 4 segundos
         if (presentacionId && nuevoId !== presentacionId) {
@@ -516,14 +522,14 @@ export function inicializarEscenario() {
         })
         .listen('.calificacion.registrada', (datos) => {
             if (presentacionId && parseInt(datos.presentacion_id, 10) === presentacionId) {
-                const juradoItem = document.querySelector(`[data-jurado-usuario-id="${datos.jurado_id}"]`);
-                if (juradoItem) {
+                const juradoItems = document.querySelectorAll(`[data-jurado-usuario-id="${datos.jurado_id}"]`);
+                juradoItems.forEach((juradoItem) => {
                     const badge = juradoItem.querySelector('[data-jurado-estado-badge]');
                     if (badge) {
-                        badge.textContent = 'Voto emitido';
-                        badge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300';
+                        badge.textContent = 'Calificó';
+                        badge.className = 'shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
                     }
-                }
+                });
             }
         });
     });
