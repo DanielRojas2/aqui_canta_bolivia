@@ -27,8 +27,8 @@
     $calificadosCount = (int) $juradosCalificados;
 @endphp
 
-<article {{ $attributes->merge(['class' => 'musician-card relative w-full max-w-[270px] xl:max-w-[245px] aspect-[3/4.6] rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-b from-stone-900/90 via-[#120f0c] to-black transition-all duration-300 hover:shadow-gold-500/20 hover:-translate-y-1 flex flex-col justify-between p-3 group cursor-pointer']) }}
-         style="aspect-ratio: 3 / 4.6; min-height: 380px;"
+<article {{ $attributes->merge(['class' => 'musician-card relative w-full max-w-[340px] xl:max-w-[320px] aspect-[3/4.6] rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-b from-stone-900/90 via-[#120f0c] to-black transition-all duration-300 hover:shadow-gold-500/20 hover:-translate-y-1 flex flex-col justify-between p-4 group cursor-pointer']) }}
+         style="aspect-ratio: 3 / 4.6; min-height: clamp(340px, 56vh, 470px); max-height: 60vh;"
          data-purpose="musician-score-card"
          @if($id) id="card_participante_{{ $id }}" data-card-id="{{ $id }}" @endif
          @if($onclick) onclick="{{ $onclick }}" @endif>
@@ -50,31 +50,31 @@
     <!-- Header con Departamento y Bandera -->
     <header class="relative z-10 px-4 pt-4 flex flex-col gap-2" data-purpose="card-top-category">
         <div class="flex items-center justify-between gap-2">
-            <span class="card-departamento-value text-[11px] tracking-[0.16em] uppercase font-bold text-gold-400/90 drop-shadow-md truncate" style="color: #fbbf24;">
+            <span class="card-departamento-value text-sm tracking-[0.16em] uppercase font-bold text-gold-400/90 drop-shadow-md truncate" style="color: #fbbf24;">
                 {{ $departamento ?? 'Bolivia' }}
             </span>
             @if ($bandera)
-                <img class="w-4 h-3.5 object-cover shrink-0 rounded-[1px]" src="{{ $bandera }}" alt="Bandera de {{ $departamento ?? 'Bolivia' }}">
+                <img class="w-5 h-4 object-cover shrink-0 rounded-[1px]" src="{{ $bandera }}" alt="Bandera de {{ $departamento ?? 'Bolivia' }}">
             @endif
         </div>
         <div class="w-full h-px" style="background: linear-gradient(to right, transparent, rgba(212, 175, 55, 0.4), transparent);"></div>
     </header>
 
     <!-- Parte baja: Calificación sobre el Nombre completo -->
-    <div class="relative z-10 px-2.5 pb-4 mt-auto flex flex-col items-center text-center" data-purpose="artist-info-and-score">
-        <div class="flex items-baseline gap-1 mb-1">
-            <span class="card-score-value font-serif text-4xl sm:text-5xl font-extrabold tracking-tight gold-gradient-text drop-shadow-[0_2px_12px_rgba(212,175,55,0.45)]">
+    <div class="relative z-10 px-3 pb-4 mt-auto flex flex-col items-center text-center" data-purpose="artist-info-and-score">
+        <div class="flex items-baseline gap-1.5 mb-1.5">
+            <span class="card-score-value font-serif text-[3.1rem] sm:text-[3.95rem] font-extrabold tracking-tight gold-gradient-text drop-shadow-[0_2px_12px_rgba(212,175,55,0.45)] leading-none">
                 {{ $notaTexto }}
             </span>
-            <span class="text-[11px] font-semibold text-yellow-200/50 uppercase tracking-wider font-sans">/100</span>
+            <span class="text-sm font-semibold text-yellow-200/50 uppercase tracking-wider font-sans">/100</span>
         </div>
-        <div aria-hidden="true" class="w-8 h-0.5 rounded-full mb-1.5" style="background-color: rgba(212, 175, 55, 0.5);"></div>
-        <h2 class="font-serif text-sm sm:text-base font-bold tracking-wide leading-tight text-amber-50 uppercase drop-shadow-md break-words" title="{{ $nombre }}">
+        <div aria-hidden="true" class="w-10 h-0.5 rounded-full mb-2" style="background-color: rgba(212, 175, 55, 0.5);"></div>
+        <h2 class="font-serif text-[1.15rem] sm:text-[1.32rem] font-bold tracking-wide leading-tight text-amber-50 uppercase drop-shadow-md break-words" title="{{ $nombre }}">
             {{ $nombre }}
         </h2>
 
         <!-- Indicador de 5 jurados (rojo/vacío = pendiente, verde = voto emitido; '?' en jurado secreto) -->
-        <div class="card-jurados-dots flex items-center justify-center gap-2 mt-2.5 pt-1"
+        <div class="card-jurados-dots flex items-center justify-center gap-2.5 mt-3 pt-1"
              data-calificados-count="{{ $calificadosCount }}"
              title="Votos emitidos: {{ $calificadosCount }} / 5">
             @for ($i = 0; $i < 5; $i++)
@@ -87,7 +87,7 @@
                         && !empty($juradoItem['es_secreto'])
                         && empty($juradoItem['es_revelado']);
                 @endphp
-                <span class="card-jurado-dot w-4 h-4 rounded-full inline-flex items-center justify-center text-[10px] font-black font-mono leading-none select-none transition-all duration-300 {{ $haVotado ? 'bg-emerald-400 border border-emerald-300 text-slate-950 shadow-[0_0_8px_#10b981]' : 'bg-rose-500/35 border border-rose-500/80 text-rose-200 shadow-[0_0_5px_rgba(244,63,94,0.3)]' }}"
+                <span class="card-jurado-dot w-5 h-5 rounded-full inline-flex items-center justify-center text-[11px] font-black font-mono leading-none select-none transition-all duration-300 {{ $haVotado ? ($esSecreto ? 'bg-amber-400 border border-amber-200 text-slate-950 shadow-[0_0_8px_#fbbf24]' : 'bg-emerald-400 border border-emerald-300 text-slate-950 shadow-[0_0_8px_#10b981]') : 'bg-rose-500/35 border border-rose-500/80 text-rose-200 shadow-[0_0_5px_rgba(244,63,94,0.3)]' }}"
                       data-dot-index="{{ $i }}"
                       data-votado="{{ $haVotado ? '1' : '0' }}"
                       data-es-secreto="{{ $esSecreto ? '1' : '0' }}">{{ $esSecreto ? '?' : '' }}</span>

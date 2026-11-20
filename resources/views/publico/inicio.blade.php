@@ -10,9 +10,9 @@
         <!-- TEXTO DE GANADORES / CATEGORÍA Y HR DIVIDER DORADO             -->
         <!-- ============================================================== -->
         <div class="w-full pt-0.5 pb-1.5 select-none">
-            <div class="flex flex-col sm:flex-row sm:items-center {{ ($esPodio && $ranking->isNotEmpty()) ? 'justify-between' : 'justify-end' }} gap-2 px-1 mb-1.5">
+            <div class="flex flex-col sm:flex-row sm:items-center {{ ($esPodio && $ranking->isNotEmpty()) ? 'justify-between' : 'justify-center' }} gap-2 px-1 mb-1.5">
                 @if ($esPodio && $ranking->isNotEmpty())
-                    <h2 class="text-xs sm:text-sm md:text-base font-black uppercase tracking-[0.15em] font-cinzel gold-gradient-text whitespace-nowrap" style="color: #d4af37; text-shadow: 0 0 15px rgba(212,175,55,0.6);">
+                    <h2 class="text-lg sm:text-xl md:text-2xl font-black uppercase tracking-[0.15em] font-cinzel gold-gradient-text whitespace-nowrap" style="color: #d4af37; text-shadow: 0 0 15px rgba(212,175,55,0.6);">
                         @if ($categoriaSeleccionada?->tieneUnSoloGanador())
                             {{ $categoriaSeleccionada->esNusta() ? 'Elección y Proclamación de la Ñusta' : 'Ganador Oficial de la Categoría' }}
                         @else
@@ -21,7 +21,7 @@
                     </h2>
                 @endif
 
-                <h2 class="text-xs sm:text-sm md:text-base font-black uppercase tracking-[0.15em] font-cinzel gold-gradient-text sm:text-right" style="color: #d4af37; text-shadow: 0 0 15px rgba(212,175,55,0.6);">
+                <h2 class="text-lg sm:text-xl md:text-2xl font-black uppercase tracking-[0.15em] font-cinzel gold-gradient-text {{ ($esPodio && $ranking->isNotEmpty()) ? 'sm:text-right' : 'text-center' }}" style="color: #d4af37; text-shadow: 0 0 15px rgba(212,175,55,0.6);">
                     {{ $categoriaSeleccionada ? $categoriaSeleccionada->categoria : 'Etapa Final Oruro 2026' }}
                 </h2>
             </div>
@@ -78,37 +78,38 @@
                 display: none !important;
             }
             [data-purpose="desktop-showcase-grid"]:not(.showcase-todos-mode) .musician-card {
-                flex: 0 1 240px;
+                flex: 0 1 320px;
                 min-width: 0;
             }
             .showcase-todos-mode {
-                max-width: 1050px !important;
+                max-width: 1400px !important;
                 display: flex !important;
                 flex-wrap: wrap !important;
                 justify-content: center !important;
                 align-items: center !important;
                 align-content: center !important;
-                gap: 1rem !important;
+                gap: 1.25rem !important;
             }
             .showcase-todos-mode .musician-card {
-                width: 185px !important;
+                width: 245px !important;
                 min-height: 0 !important;
-                height: 215px !important;
-                max-width: 185px !important;
+                height: clamp(185px, 27vh, 265px) !important;
+                max-height: 28vh !important;
+                max-width: 245px !important;
                 aspect-ratio: auto !important;
-                padding: 0.6rem !important;
+                padding: 0.75rem !important;
             }
             .showcase-todos-mode .musician-card .corner-bracket {
-                width: 12px !important;
-                height: 12px !important;
+                width: 14px !important;
+                height: 14px !important;
             }
             .showcase-todos-mode .musician-card .card-score-value {
-                font-size: 1.85rem !important;
+                font-size: 2.45rem !important;
                 line-height: 1 !important;
             }
             .showcase-todos-mode .musician-card h2 {
-                font-size: 0.72rem !important;
-                line-height: 1.12 !important;
+                font-size: 0.95rem !important;
+                line-height: 1.15 !important;
             }
             .showcase-todos-mode .musician-card .card-jurados-dots {
                 margin-top: 0.35rem !important;
@@ -132,12 +133,12 @@
                                 $bandera1 = \App\Modules\Departamentos\Models\Departamento::urlBanderaPorNombre($primerLugar['departamento'] ?? null);
                             @endphp
                             <div class="w-full flex justify-center">
-                                <div class="podio-card-flip-container w-full" style="max-width: 285px;">
-                                    <div id="podioCard_1" class="podio-card-inner {{ $lugar1Revelado ? 'is-flipped' : '' }}" style="height: 415px;">
+                                <div class="podio-card-flip-container w-full" style="max-width: 376px;">
+                                    <div id="podioCard_1" class="podio-card-inner {{ $lugar1Revelado ? 'is-flipped' : '' }}" style="height: 545px;">
                                         
                                         <!-- CARA TRASERA: PREPARACIÓN DEL PODIO (MISMO ESTILO QUE CARD DE RANKING PÚBLICO) -->
                                         <div class="podio-card-back podio-card-shadow-1 relative w-full h-full rounded-2xl overflow-hidden bg-gradient-to-b from-stone-900/90 via-[#120f0c] to-black flex flex-col justify-between p-3 select-none"
-                                             style="height: 415px;">
+                                             style="height: 545px;">
                                             <img class="absolute inset-0 w-full h-full object-cover z-0 opacity-35"
                                                  src="{{ asset('images/fondo.png') }}"
                                                  alt="Fondo de Gala">
@@ -175,7 +176,7 @@
 
                                         <!-- CARA DELANTERA: GANADOR REVELADO (MISMO ESTILO QUE CARD DE RANKING PÚBLICO SIN ESQUINAS DORADAS) -->
                                         <article class="podio-card-front podio-card-shadow-1 absolute inset-0 w-full h-full rounded-2xl overflow-hidden bg-gradient-to-b from-stone-900/90 via-[#120f0c] to-black flex flex-col justify-between p-3 cursor-pointer"
-                                                 style="height: 415px;"
+                                                 style="height: 545px;"
                                                  data-card-id="{{ $primerLugar['id'] }}"
                                                  onclick="abrirModalDesglose({{ $primerLugar['id'] }})">
                                             
@@ -227,7 +228,7 @@
                     </div>
                 @else
                     <!-- Estructura de Podio: 2° Lugar (Izquierda), 1° Lugar (Centro), 3° Lugar (Derecha) ocupando el espacio disponible -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 lg:gap-10 items-end justify-items-center pt-2 max-w-5xl mx-auto w-full">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 lg:gap-10 items-end justify-items-center pt-2 max-w-[1360px] mx-auto w-full">
                     
                     <!-- ========================= -->
                     <!-- 2° LUGAR                  -->
@@ -238,12 +239,12 @@
                             $bandera2 = \App\Modules\Departamentos\Models\Departamento::urlBanderaPorNombre($segundoLugar['departamento'] ?? null);
                         @endphp
                         <div class="order-2 sm:order-1 flex flex-col items-center w-full">
-                            <div class="podio-card-flip-container w-full" style="max-width: 265px;">
-                                <div id="podioCard_2" class="podio-card-inner {{ $lugar2Revelado ? 'is-flipped' : '' }}" style="height: 390px;">
+                            <div class="podio-card-flip-container w-full" style="max-width: 350px;">
+                                <div id="podioCard_2" class="podio-card-inner {{ $lugar2Revelado ? 'is-flipped' : '' }}" style="height: 515px;">
                                     
                                     <!-- CARA TRASERA: PREPARACIÓN DEL PODIO (MISMO ESTILO QUE CARD DE RANKING PÚBLICO) -->
                                     <div class="podio-card-back podio-card-shadow relative w-full h-full rounded-2xl overflow-hidden bg-gradient-to-b from-stone-900/90 via-[#120f0c] to-black flex flex-col justify-between p-3 select-none"
-                                         style="height: 390px;">
+                                         style="height: 515px;">
                                         <img class="absolute inset-0 w-full h-full object-cover z-0 opacity-35"
                                              src="{{ asset('images/fondo.png') }}"
                                              alt="Fondo de Gala">
@@ -281,7 +282,7 @@
 
                                     <!-- CARA DELANTERA: GANADOR REVELADO -->
                                     <article class="podio-card-front podio-card-shadow absolute inset-0 w-full h-full rounded-2xl overflow-hidden bg-gradient-to-b from-stone-900/90 via-[#120f0c] to-black flex flex-col justify-between p-3 cursor-pointer"
-                                             style="height: 390px;"
+                                             style="height: 515px;"
                                              data-card-id="{{ $segundoLugar['id'] }}"
                                              onclick="abrirModalDesglose({{ $segundoLugar['id'] }})">
                                         
@@ -342,12 +343,12 @@
                             $bandera1 = \App\Modules\Departamentos\Models\Departamento::urlBanderaPorNombre($primerLugar['departamento'] ?? null);
                         @endphp
                         <div class="order-1 sm:order-2 flex flex-col items-center sm:-translate-y-2 w-full">
-                            <div class="podio-card-flip-container w-full" style="max-width: 280px;">
-                                <div id="podioCard_1" class="podio-card-inner {{ $lugar1Revelado ? 'is-flipped' : '' }}" style="height: 410px;">
+                            <div class="podio-card-flip-container w-full" style="max-width: 370px;">
+                                <div id="podioCard_1" class="podio-card-inner {{ $lugar1Revelado ? 'is-flipped' : '' }}" style="height: 540px;">
                                     
                                     <!-- CARA TRASERA: PREPARACIÓN DEL PODIO (MISMO ESTILO QUE CARD DE RANKING PÚBLICO) -->
                                     <div class="podio-card-back podio-card-shadow-1 relative w-full h-full rounded-2xl overflow-hidden bg-gradient-to-b from-stone-900/90 via-[#120f0c] to-black flex flex-col justify-between p-3 select-none"
-                                         style="height: 410px;">
+                                         style="height: 540px;">
                                         <img class="absolute inset-0 w-full h-full object-cover z-0 opacity-35"
                                              src="{{ asset('images/fondo.png') }}"
                                              alt="Fondo de Gala">
@@ -385,7 +386,7 @@
 
                                     <!-- CARA DELANTERA: GANADOR REVELADO -->
                                     <article class="podio-card-front podio-card-shadow-1 absolute inset-0 w-full h-full rounded-2xl overflow-hidden bg-gradient-to-b from-stone-900/90 via-[#120f0c] to-black flex flex-col justify-between p-3 cursor-pointer"
-                                             style="height: 410px;"
+                                             style="height: 540px;"
                                              data-card-id="{{ $primerLugar['id'] }}"
                                              onclick="abrirModalDesglose({{ $primerLugar['id'] }})">
                                         
@@ -444,12 +445,12 @@
                             $bandera3 = \App\Modules\Departamentos\Models\Departamento::urlBanderaPorNombre($tercerLugar['departamento'] ?? null);
                         @endphp
                         <div class="order-3 flex flex-col items-center w-full">
-                            <div class="podio-card-flip-container w-full" style="max-width: 265px;">
-                                <div id="podioCard_3" class="podio-card-inner {{ $lugar3Revelado ? 'is-flipped' : '' }}" style="height: 390px;">
+                            <div class="podio-card-flip-container w-full" style="max-width: 350px;">
+                                <div id="podioCard_3" class="podio-card-inner {{ $lugar3Revelado ? 'is-flipped' : '' }}" style="height: 515px;">
                                     
                                     <!-- CARA TRASERA: PREPARACIÓN DEL PODIO (MISMO ESTILO QUE CARD DE RANKING PÚBLICO) -->
                                     <div class="podio-card-back podio-card-shadow relative w-full h-full rounded-2xl overflow-hidden bg-gradient-to-b from-stone-900/90 via-[#120f0c] to-black flex flex-col justify-between p-3 select-none"
-                                         style="height: 390px;">
+                                         style="height: 515px;">
                                         <img class="absolute inset-0 w-full h-full object-cover z-0 opacity-35"
                                              src="{{ asset('images/fondo.png') }}"
                                              alt="Fondo de Gala">
@@ -487,7 +488,7 @@
 
                                     <!-- CARA DELANTERA: GANADOR REVELADO -->
                                     <article class="podio-card-front podio-card-shadow absolute inset-0 w-full h-full rounded-2xl overflow-hidden bg-gradient-to-b from-stone-900/90 via-[#120f0c] to-black flex flex-col justify-between p-3 cursor-pointer"
-                                             style="height: 390px;"
+                                             style="height: 515px;"
                                              data-card-id="{{ $tercerLugar['id'] }}"
                                              onclick="abrirModalDesglose({{ $tercerLugar['id'] }})">
                                         
@@ -557,7 +558,7 @@
                 </div>
             @else
                 <!-- BEGIN: ContestantsGrid -->
-                <main class="w-full max-w-[1400px] mx-auto min-h-[calc(100vh-280px)] flex flex-wrap lg:flex-nowrap items-center justify-center content-center gap-4 xl:gap-6 relative z-10 py-1" data-purpose="desktop-showcase-grid">
+                <main class="w-full max-w-[1560px] mx-auto flex flex-wrap lg:flex-nowrap items-center justify-center content-center gap-4 xl:gap-6 relative z-10 py-1" data-purpose="desktop-showcase-grid">
                     @foreach ($ranking as $item)
                         @php
                             $pos = $item['posicion'];
@@ -620,9 +621,9 @@
                                 $tieneNota = !$esSecretoOculto && isset($j['nota_total']) && $j['nota_total'] !== null;
                             @endphp
                             <div data-modal-jurado-index="{{ $idx }}"
-                                 class="w-14 h-14 sm:w-16 sm:h-16 rounded-full flex flex-col items-center justify-center transition-all duration-300 {{ $esSecretoOculto ? ($secretoHaVotado ? 'bg-gradient-to-b from-emerald-900/80 to-[#062016] border-2 border-emerald-400 shadow-[0_0_16px_rgba(16,185,129,0.45)]' : 'bg-[#1a050b]/85 border-2 border-rose-500/80 shadow-[0_0_10px_rgba(244,63,94,0.25)]') : ($tieneNota ? 'bg-gradient-to-b from-[#240612] to-[#0c0206] border-2 border-[#d4af37] shadow-[0_0_14px_rgba(212,175,55,0.28)]' : 'bg-[#0c0206]/80 border-2 border-[#4a0817]/70') }}">
+                                 class="w-14 h-14 sm:w-16 sm:h-16 rounded-full flex flex-col items-center justify-center transition-all duration-300 {{ $esSecretoOculto ? ($secretoHaVotado ? 'bg-gradient-to-b from-amber-900/80 to-[#241804] border-2 border-amber-400 shadow-[0_0_16px_rgba(251,191,36,0.5)]' : 'bg-[#1a050b]/85 border-2 border-rose-500/80 shadow-[0_0_10px_rgba(244,63,94,0.25)]') : ($tieneNota ? 'bg-gradient-to-b from-[#240612] to-[#0c0206] border-2 border-[#d4af37] shadow-[0_0_14px_rgba(212,175,55,0.28)]' : 'bg-[#0c0206]/80 border-2 border-[#4a0817]/70') }}">
                                 @if ($esSecretoOculto)
-                                    <span data-modal-jurado-valor class="font-cinzel text-2xl sm:text-3xl font-black {{ $secretoHaVotado ? 'text-emerald-300 drop-shadow-[0_0_8px_rgba(16,185,129,0.7)]' : 'text-rose-300' }} leading-none">?</span>
+                                    <span data-modal-jurado-valor class="font-cinzel text-2xl sm:text-3xl font-black {{ $secretoHaVotado ? 'text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.75)]' : 'text-rose-300' }} leading-none">?</span>
                                     <span class="sr-only">🔒 Reservado</span>
                                 @elseif ($tieneNota)
                                     <span data-modal-jurado-valor class="text-xs sm:text-sm font-black font-mono text-amber-300 tabular-nums leading-none">
@@ -649,33 +650,32 @@
 
     </div>
 
-    <!-- Botón Flotante de Herramientas del Carrusel (fuera de rankingLiveWrapper para preservar estado al cambiar categoría) -->
-    <div id="carouselControlsBar" style="display: none;" class="fixed bottom-5 right-5 z-50 flex-col items-end gap-2 select-none">
-        <div id="carouselToolsPopover" style="display: none;" class="bg-[#120409]/95 backdrop-blur-xl border border-amber-500/40 rounded-2xl p-3 shadow-[0_12px_40px_rgba(0,0,0,0.85)] space-y-2.5 min-w-[220px]">
-            <div class="flex items-center justify-between gap-2 border-b border-white/10 pb-1.5">
-                <span class="text-[10px] font-bold uppercase tracking-widest text-amber-300 font-cinzel">Carrusel en Vivo</span>
-                <button type="button"
-                        id="carouselToggleBtn"
-                        onclick="toggleCarouselPause()"
-                        class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#240712] hover:bg-[#380b1c] text-amber-200 border border-amber-500/30 transition cursor-pointer">
-                    ⏸ Pausar
-                </button>
-            </div>
-            <div id="carouselIndicators" class="flex flex-wrap items-center gap-1.5"></div>
-            <div class="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                <div id="carouselProgressBar" class="h-full bg-gradient-to-r from-amber-500 to-amber-200 transition-all duration-100" style="width: 0%;"></div>
-            </div>
-        </div>
+    <!-- Flechas laterales en ambos extremos de los cards (fuera de rankingLiveWrapper) -->
+    <button type="button"
+            id="carouselBtnPrev"
+            onclick="anteriorSlideCarrousel()"
+            style="display: none;"
+            title="Participantes anteriores"
+            class="fixed left-3 sm:left-5 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#16050c]/85 hover:bg-[#2e0917] border border-amber-500/45 hover:border-amber-300 text-amber-300 hover:text-white shadow-[0_6px_24px_rgba(0,0,0,0.75)] backdrop-blur-md items-center justify-center transition-all hover:scale-110 cursor-pointer select-none">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+        </svg>
+    </button>
 
-        <button type="button"
-                id="carouselFloatingBtn"
-                onclick="toggleCarouselToolsPopover(event)"
-                title="Herramientas de carrusel"
-                class="w-11 h-11 rounded-full bg-[#16050c]/90 hover:bg-[#2a0916] border border-amber-500/50 text-amber-300 shadow-[0_6px_24px_rgba(0,0,0,0.75)] backdrop-blur-md flex items-center justify-center opacity-70 hover:opacity-100 hover:scale-105 transition-all cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-            </svg>
-        </button>
+    <button type="button"
+            id="carouselBtnNext"
+            onclick="siguienteSlideCarrousel()"
+            style="display: none;"
+            title="Siguientes participantes"
+            class="fixed right-3 sm:right-5 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#16050c]/85 hover:bg-[#2e0917] border border-amber-500/45 hover:border-amber-300 text-amber-300 hover:text-white shadow-[0_6px_24px_rgba(0,0,0,0.75)] backdrop-blur-md items-center justify-center transition-all hover:scale-110 cursor-pointer select-none">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+        </svg>
+    </button>
+
+    <!-- Puntos de navegación debajo de los cards (clic en un punto = vista estática hasta usar flechas) -->
+    <div id="carouselControlsBar" style="display: none;" class="w-full max-w-[1560px] mx-auto pt-2 flex-col items-center justify-center gap-2 select-none shrink-0">
+        <div id="carouselIndicators" class="flex flex-wrap items-center justify-center gap-2.5"></div>
     </div>
 
     <!-- ============================================================== -->
@@ -819,9 +819,11 @@
                 dot.textContent = esSecreto ? '?' : '';
 
                 if (haVotado) {
-                    dot.className = 'card-jurado-dot w-4 h-4 rounded-full inline-flex items-center justify-center text-[10px] font-black font-mono leading-none select-none transition-all duration-300 bg-emerald-400 border border-emerald-300 text-slate-950 shadow-[0_0_8px_#10b981]';
+                    dot.className = esSecreto
+                        ? 'card-jurado-dot w-5 h-5 rounded-full inline-flex items-center justify-center text-[11px] font-black font-mono leading-none select-none transition-all duration-300 bg-amber-400 border border-amber-200 text-slate-950 shadow-[0_0_8px_#fbbf24]'
+                        : 'card-jurado-dot w-5 h-5 rounded-full inline-flex items-center justify-center text-[11px] font-black font-mono leading-none select-none transition-all duration-300 bg-emerald-400 border border-emerald-300 text-slate-950 shadow-[0_0_8px_#10b981]';
                 } else {
-                    dot.className = 'card-jurado-dot w-4 h-4 rounded-full inline-flex items-center justify-center text-[10px] font-black font-mono leading-none select-none transition-all duration-300 bg-rose-500/35 border border-rose-500/80 text-rose-200 shadow-[0_0_5px_rgba(244,63,94,0.3)]';
+                    dot.className = 'card-jurado-dot w-5 h-5 rounded-full inline-flex items-center justify-center text-[11px] font-black font-mono leading-none select-none transition-all duration-300 bg-rose-500/35 border border-rose-500/80 text-rose-200 shadow-[0_0_5px_rgba(244,63,94,0.3)]';
                 }
             });
         }
@@ -843,8 +845,8 @@
 
                 if (esSecretoOculto) {
                     if (secretoHaVotado) {
-                        circulo.className = 'w-14 h-14 sm:w-16 sm:h-16 rounded-full flex flex-col items-center justify-center transition-all duration-300 bg-gradient-to-b from-emerald-900/80 to-[#062016] border-2 border-emerald-400 shadow-[0_0_16px_rgba(16,185,129,0.45)]';
-                        circulo.innerHTML = '<span data-modal-jurado-valor class="font-cinzel text-2xl sm:text-3xl font-black text-emerald-300 drop-shadow-[0_0_8px_rgba(16,185,129,0.7)] leading-none">?</span><span class="sr-only">🔒 Reservado</span>';
+                        circulo.className = 'w-14 h-14 sm:w-16 sm:h-16 rounded-full flex flex-col items-center justify-center transition-all duration-300 bg-gradient-to-b from-amber-900/80 to-[#241804] border-2 border-amber-400 shadow-[0_0_16px_rgba(251,191,36,0.5)]';
+                        circulo.innerHTML = '<span data-modal-jurado-valor class="font-cinzel text-2xl sm:text-3xl font-black text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.75)] leading-none">?</span><span class="sr-only">🔒 Reservado</span>';
                     } else {
                         circulo.className = 'w-14 h-14 sm:w-16 sm:h-16 rounded-full flex flex-col items-center justify-center transition-all duration-300 bg-[#1a050b]/85 border-2 border-rose-500/80 shadow-[0_0_10px_rgba(244,63,94,0.25)]';
                         circulo.innerHTML = '<span data-modal-jurado-valor class="font-cinzel text-2xl sm:text-3xl font-black text-rose-300 leading-none">?</span><span class="sr-only">🔒 Reservado</span>';
@@ -880,10 +882,13 @@
             const targetDot = card.querySelector(selector) || card.querySelector('.card-jurado-dot[data-votado="0"]');
             if (targetDot) {
                 targetDot.setAttribute('data-votado', '1');
-                if (targetDot.getAttribute('data-es-secreto') === '1') {
+                const esSecreto = targetDot.getAttribute('data-es-secreto') === '1' || Boolean(data.es_secreto);
+                if (esSecreto) {
                     targetDot.textContent = '?';
                 }
-                targetDot.className = 'card-jurado-dot w-4 h-4 rounded-full inline-flex items-center justify-center text-[10px] font-black font-mono leading-none select-none transition-all duration-300 bg-emerald-400 border border-emerald-300 text-slate-950 shadow-[0_0_8px_#10b981]';
+                targetDot.className = esSecreto
+                    ? 'card-jurado-dot w-5 h-5 rounded-full inline-flex items-center justify-center text-[11px] font-black font-mono leading-none select-none transition-all duration-300 bg-amber-400 border border-amber-200 text-slate-950 shadow-[0_0_8px_#fbbf24]'
+                    : 'card-jurado-dot w-5 h-5 rounded-full inline-flex items-center justify-center text-[11px] font-black font-mono leading-none select-none transition-all duration-300 bg-emerald-400 border border-emerald-300 text-slate-950 shadow-[0_0_8px_#10b981]';
             }
         }
 
@@ -1300,10 +1305,10 @@
         });
 
         // ==============================================================
-        // CARRUSEL AUTOMÁTICO (DE 5 EN 5 + TRANSICIÓN A TODOS)
+        // CARRUSEL AUTOMÁTICO (DE 4 EN 4 + TRANSICIÓN A TODOS)
         // ==============================================================
         (function () {
-            const SLIDE_SIZE = 5;
+            const SLIDE_SIZE = 4;
             const SLIDE_DURATION_MS = 10000;
             const TICK_MS = 100;
 
@@ -1329,11 +1334,11 @@
                     const inicio = i * SLIDE_SIZE + 1;
                     const fin = Math.min((i + 1) * SLIDE_SIZE, totalCards);
                     const activo = (slideActual === i);
-                    html += `<button type="button" onclick="irASlideCarrousel(${i})" class="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase transition cursor-pointer ${activo ? 'bg-amber-400 text-[#120409] shadow-[0_0_10px_rgba(251,191,36,0.45)]' : 'bg-[#1a050d] text-slate-300 hover:text-white border border-white/10'}">${inicio}–${fin}</button>`;
+                    html += `<button type="button" onclick="seleccionarPuntoCarrousel(${i})" title="Ver participantes ${inicio}–${fin} (fijar vista)" aria-label="Participantes ${inicio} a ${fin}" class="rounded-full transition-all duration-300 cursor-pointer ${activo ? 'w-8 h-3 bg-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.7)]' : 'w-3 h-3 bg-amber-200/30 hover:bg-amber-300/70'}"></button>`;
                 }
 
                 const esTodos = (slideActual === totalChunks);
-                html += `<button type="button" onclick="irASlideCarrousel(${totalChunks})" class="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase transition cursor-pointer ${esTodos ? 'bg-amber-400 text-[#120409] shadow-[0_0_10px_rgba(251,191,36,0.45)]' : 'bg-[#1a050d] text-amber-200 hover:text-white border border-amber-500/30'}">Todos (${totalCards})</button>`;
+                html += `<button type="button" onclick="seleccionarPuntoCarrousel(${totalChunks})" title="Ver todos (${totalCards}) (fijar vista)" aria-label="Ver todos los participantes" class="rounded-full transition-all duration-300 cursor-pointer border ${esTodos ? 'w-8 h-3 bg-amber-400 border-amber-200 shadow-[0_0_12px_rgba(251,191,36,0.7)]' : 'w-3 h-3 bg-[#2a0916] border-amber-400/60 hover:bg-amber-400/50'}"></button>`;
 
                 cont.innerHTML = html;
             }
@@ -1341,9 +1346,13 @@
             window.actualizarCarrouselPublico = function (animar = true) {
                 const { grid, cards } = obtenerCards();
                 const bar = document.getElementById('carouselControlsBar');
+                const btnPrev = document.getElementById('carouselBtnPrev');
+                const btnNext = document.getElementById('carouselBtnNext');
 
                 if (!grid || cards.length === 0) {
                     if (bar) bar.style.display = 'none';
+                    if (btnPrev) btnPrev.style.display = 'none';
+                    if (btnNext) btnNext.style.display = 'none';
                     return;
                 }
 
@@ -1354,13 +1363,17 @@
                         c.style.animationDelay = '';
                     });
                     if (bar) bar.style.display = 'none';
+                    if (btnPrev) btnPrev.style.display = 'none';
+                    if (btnNext) btnNext.style.display = 'none';
                     return;
                 }
 
                 if (bar) bar.style.display = 'flex';
+                if (btnPrev) btnPrev.style.display = 'flex';
+                if (btnNext) btnNext.style.display = 'flex';
 
                 const totalChunks = Math.ceil(cards.length / SLIDE_SIZE);
-                const totalSlides = totalChunks + 1; // chunks de 5 + vista "Todos"
+                const totalSlides = totalChunks + 1;
                 if (slideActual >= totalSlides) {
                     slideActual = 0;
                 }
@@ -1383,7 +1396,7 @@
                         if (animar) {
                             card.classList.remove('carousel-card-enter');
                             void card.offsetWidth;
-                            card.style.animationDelay = `${visibleIdx * 55}ms`;
+                            card.style.animationDelay = `${visibleIdx * 65}ms`;
                             card.classList.add('carousel-card-enter');
                         }
                         visibleIdx++;
@@ -1403,28 +1416,34 @@
                 window.actualizarCarrouselPublico(true);
             };
 
-            window.toggleCarouselPause = function () {
-                pausado = !pausado;
-                const btn = document.getElementById('carouselToggleBtn');
-                if (btn) {
-                    btn.textContent = pausado ? '▶ Reanudar' : '⏸ Pausar';
-                }
+            // Clic en un punto: muestra ese bloque con transición y deja la vista estática hasta usar flechas
+            window.seleccionarPuntoCarrousel = function (idx) {
+                pausado = true;
+                slideActual = idx;
+                elapsedMs = 0;
+                window.actualizarCarrouselPublico(true);
             };
 
-            window.toggleCarouselToolsPopover = function (e) {
-                if (e) e.stopPropagation();
-                const pop = document.getElementById('carouselToolsPopover');
-                if (!pop) return;
-                pop.style.display = (pop.style.display === 'none' || pop.style.display === '') ? 'block' : 'none';
+            // Clic en flechas Atrás / Siguiente: cambia de bloque y reanuda la rotación automática
+            window.anteriorSlideCarrousel = function () {
+                const { cards } = obtenerCards();
+                if (cards.length <= SLIDE_SIZE) return;
+                pausado = false;
+                const totalSlides = Math.ceil(cards.length / SLIDE_SIZE) + 1;
+                slideActual = (slideActual - 1 + totalSlides) % totalSlides;
+                elapsedMs = 0;
+                window.actualizarCarrouselPublico(true);
             };
 
-            document.addEventListener('click', function (e) {
-                const bar = document.getElementById('carouselControlsBar');
-                const pop = document.getElementById('carouselToolsPopover');
-                if (pop && bar && !bar.contains(e.target)) {
-                    pop.style.display = 'none';
-                }
-            });
+            window.siguienteSlideCarrousel = function () {
+                const { cards } = obtenerCards();
+                if (cards.length <= SLIDE_SIZE) return;
+                pausado = false;
+                const totalSlides = Math.ceil(cards.length / SLIDE_SIZE) + 1;
+                slideActual = (slideActual + 1) % totalSlides;
+                elapsedMs = 0;
+                window.actualizarCarrouselPublico(true);
+            };
 
             function hayModalAbierto() {
                 return Array.from(document.querySelectorAll('[id^="modalDesglose_"]')).some(m => !m.classList.contains('hidden'));
@@ -1436,11 +1455,6 @@
                 if (pausado || hayModalAbierto()) return;
 
                 elapsedMs += TICK_MS;
-                const progressEl = document.getElementById('carouselProgressBar');
-                if (progressEl) {
-                    progressEl.style.width = `${Math.min(100, (elapsedMs / SLIDE_DURATION_MS) * 100)}%`;
-                }
-
                 if (elapsedMs >= SLIDE_DURATION_MS) {
                     elapsedMs = 0;
                     const totalSlides = Math.ceil(cards.length / SLIDE_SIZE) + 1;

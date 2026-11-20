@@ -161,22 +161,22 @@
         <div aria-hidden="true" class="fixed inset-x-0 bottom-0 h-[48vh] pointer-events-none z-0 brasero-bottom-glow"></div>
         <canvas id="braseroEmbersCanvas" aria-hidden="true" class="fixed inset-0 w-full h-full pointer-events-none z-0"></canvas>
 
-        <div class="relative z-10 flex flex-col min-h-screen justify-between">
+        <div class="relative z-10 flex flex-col min-h-screen lg:h-screen lg:overflow-hidden justify-between">
             
             <!-- Barra Superior Principal de Gala -->
-            <header class="border-b border-[#800020]/50 bg-[#15050c]/95 backdrop-blur-xl sticky top-0 z-40 shadow-2xl">
-                <div class="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-10 py-3.5 flex items-center justify-between gap-4">
+            <header class="border-b border-[#800020]/50 bg-[#15050c]/95 backdrop-blur-xl sticky top-0 z-40 shadow-2xl shrink-0">
+                <div class="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-10 py-2.5 flex items-center justify-between gap-4">
                     
                     <!-- Identidad / Logo del Festival (Sin recuadro dorado) -->
-                    <div class="flex items-center gap-3.5 cursor-pointer" onclick="window.location.href='{{ route('inicio') }}'">
-                        <img src="/images/logo-oficial.png" alt="Aquí Canta Bolivia" class="h-10 w-10 object-contain drop-shadow" onerror="this.src='/images/logo-oficial.png'">
+                    <div class="flex items-center gap-4 cursor-pointer" onclick="window.location.href='{{ route('inicio') }}'">
+                        <img src="/images/logo-oficial.png" alt="Aquí Canta Bolivia" style="height: 52px; width: 52px;" class="object-contain drop-shadow" onerror="this.src='/images/logo-oficial.png'">
                         <div>
                             <div class="flex items-center gap-2">
-                                <span class="font-cinzel text-base sm:text-lg font-black tracking-[0.15em] gold-gradient-text uppercase">
+                                <span class="font-cinzel text-xl sm:text-[1.5rem] font-black tracking-[0.15em] gold-gradient-text uppercase">
                                     Aquí… Canta Bolivia
                                 </span>
                             </div>
-                            <p class="text-[10px] sm:text-[11px] font-semibold tracking-[0.2em] text-[#d4af37]/80 uppercase">
+                            <p class="text-xs sm:text-sm font-semibold tracking-[0.2em] text-[#d4af37]/80 uppercase">
                                 XXXIII Festival Nacional · Oruro 2026
                             </p>
                         </div>
@@ -184,15 +184,15 @@
 
                     <!-- Estado del Festival en Vivo -->
                     <div class="flex items-center gap-3">
-                        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#120409]/90 border border-[#6b0015]/60 text-[11px] text-slate-300 shadow-inner">
-                            <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-                            <span class="font-semibold tracking-wider uppercase text-[10px] text-slate-400">Transmisión Oficial</span>
+                        <div class="flex items-center gap-2.5 px-4 py-2 rounded-full bg-[#120409]/90 border border-[#6b0015]/60 text-sm text-slate-300 shadow-inner">
+                            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
+                            <span class="font-semibold tracking-wider uppercase text-xs text-slate-400">Transmisión Oficial</span>
                             <span class="text-[#6b0015]">|</span>
-                            <span class="font-bold text-amber-300 font-cinzel">Teatro Oruro</span>
+                            <span class="font-bold text-amber-300 font-cinzel text-sm sm:text-base">Teatro Oruro</span>
                         </div>
                         @auth
                             <a href="{{ auth()->user()->esAdmin() ? route('admin.inicio') : route('jurado.inicio') }}"
-                               class="text-[11px] font-bold text-amber-200/80 hover:text-white bg-[#1a050d] px-3 py-1 rounded-lg border border-[#6b0015] hover:border-amber-400/50 transition">
+                               class="text-sm font-bold text-amber-200/80 hover:text-white bg-[#1a050d] px-4 py-1.5 rounded-lg border border-[#6b0015] hover:border-amber-400/50 transition">
                                 Panel
                             </a>
                         @endauth
@@ -202,15 +202,15 @@
             </header>
 
             <!-- Contenido Principal -->
-            <main class="flex-1 max-w-[1700px] w-full mx-auto px-3 sm:px-6 lg:px-10 py-4">
+            <main class="flex-1 min-h-0 max-w-[1700px] w-full mx-auto px-3 sm:px-6 lg:px-10 py-2 flex flex-col justify-center">
                 {{ $slot }}
             </main>
 
             <!-- Pie de Página de Gala -->
-            <footer class="mt-4 border-t border-[#520012] bg-[#13040a]/90 backdrop-blur-md">
-                <div class="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-10 py-4 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+            <footer class="mt-1 border-t border-[#520012] bg-[#13040a]/90 backdrop-blur-md shrink-0">
+                <div class="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-10 py-2.5 flex flex-col md:flex-row items-center justify-between gap-4 text-[15px] text-slate-400">
                     <div class="flex items-center gap-3">
-                        <span class="font-cinzel font-bold text-[#d4af37] uppercase tracking-widest text-xs">Aquí Canta Bolivia</span>
+                        <span class="font-cinzel font-bold text-[#d4af37] uppercase tracking-widest text-[15px]">Aquí Canta Bolivia</span>
                         <span class="text-[#6b0015]">·</span>
                         <span>Gobierno Autónomo Departamental de Oruro</span>
                     </div>
